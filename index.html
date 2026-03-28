@@ -1,0 +1,1209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Salesforce Org Audit — SaaScend | SaaScend</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,700&family=Space+Mono:wght@400;700&family=Playfair+Display:wght@700;900&family=JetBrains+Mono:wght@400;700&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Sora:wght@300;400;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0B0E11; --surface: #12161C; --surface-raised: #1A1F27; --surface-hover: #222830;
+  --border: #2A3140; --border-accent: #3D4A5C;
+  --text: #E8ECF1; --text-muted: #8899AA; --text-dim: #566378;
+  --accent: #00D4AA; --accent-glow: rgba(0,212,170,0.15); --accent-deep: #00B892;
+  --danger: #FF5C5C; --danger-glow: rgba(255,92,92,0.12);
+  --warn: #FFB547; --warn-glow: rgba(255,181,71,0.12);
+  --info: #5B8DEF; --info-glow: rgba(91,141,239,0.12);
+  --grade-a: #00D4AA; --grade-b: #5B8DEF; --grade-c: #FFB547; --grade-d: #FF8C42; --grade-f: #FF5C5C;
+  --radius: 16px; --radius-sm: 10px;
+  --font: 'DM Sans', sans-serif; --mono: 'Space Mono', monospace;
+  --display: 'Playfair Display', serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--font);line-height:1.6;overflow-x:hidden;transition:font-family .3s}
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.03;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+.orb{position:fixed;border-radius:50%;filter:blur(120px);pointer-events:none;z-index:0}
+.orb-1{width:600px;height:600px;background:rgba(0,212,170,.06);top:-200px;right:-200px}
+.orb-2{width:500px;height:500px;background:rgba(91,141,239,.05);bottom:20%;left:-150px}
+.orb-3{width:400px;height:400px;background:rgba(255,92,92,.04);bottom:-100px;right:10%}
+.container{max-width:1200px;margin:0 auto;padding:0 32px;position:relative;z-index:1}
+
+/* -- PERSONA BAR -- */
+.persona-bar{position:fixed;top:0;left:0;right:0;z-index:200;background:rgba(11,14,17,.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
+.persona-bar .container{display:flex;align-items:center;gap:8px;padding:10px 32px}
+.persona-bar-label{font-size:11px;text-transform:uppercase;letter-spacing:1.5px;color:var(--text-dim);margin-right:8px;white-space:nowrap;font-weight:600}
+.persona-btn{padding:6px 14px;font-size:12px;font-weight:600;border:1px solid var(--border);border-radius:100px;background:transparent;color:var(--text-muted);cursor:pointer;transition:all .25s;white-space:nowrap;font-family:var(--font)}
+.persona-btn:hover{border-color:var(--border-accent);color:var(--text)}
+.persona-btn.active{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+.persona-btn .emoji{margin-right:4px}
+
+/* -- HERO -- */
+.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:120px 0 80px;position:relative}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;padding:6px 16px 6px 8px;background:var(--accent-glow);border:1px solid rgba(0,212,170,.2);border-radius:100px;font-size:13px;color:var(--accent);font-weight:500;letter-spacing:.5px;text-transform:uppercase;margin-bottom:32px;width:fit-content;animation:fadeUp .6s ease both}
+.hero-badge::before{content:'';width:8px;height:8px;background:var(--accent);border-radius:50%;animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.hero-title{font-family:'Sora',sans-serif;font-weight:700;font-size:clamp(2.6rem,5vw,4.5rem);line-height:1.1;letter-spacing:-.02em;margin-bottom:24px;animation:fadeUp .6s .1s ease both;transition:font-family .3s}
+.hero-title .hl{color:var(--accent)}
+.hero-sub{font-size:18px;color:var(--text-muted);max-width:620px;margin-bottom:48px;animation:fadeUp .6s .2s ease both;line-height:1.65}
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+
+.hero-content{display:flex;justify-content:space-between;align-items:flex-start;gap:48px;flex-wrap:wrap}
+.hero-left{flex:1;min-width:320px}
+.hero-right{display:flex;flex-direction:column;align-items:flex-end;gap:20px;animation:fadeUp .6s .3s ease both}
+.hero-score{display:flex;align-items:center;gap:40px;flex-wrap:wrap}
+.score-ring{position:relative;width:170px;height:170px;flex-shrink:0}
+.score-ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.score-ring circle{fill:none;stroke-width:6;cx:85;cy:85;r:75}
+.score-ring .track{stroke:var(--border)}
+.score-ring .fill{stroke:var(--warn);stroke-dasharray:471.24;stroke-dashoffset:216.77;stroke-linecap:round}
+.score-value{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.score-number{font-family:var(--mono);font-size:44px;font-weight:700;color:var(--warn);line-height:1}
+.score-label{font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:1.5px;margin-top:4px}
+.score-meta{display:flex;flex-direction:column;gap:10px}
+.score-meta-item{display:flex;align-items:center;gap:10px}
+.smi-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.smi-label{font-size:13px;color:var(--text-muted)}
+.smi-value{font-family:var(--mono);font-size:13px;font-weight:700;margin-left:auto}
+
+.hero-cta-btn{display:inline-flex;align-items:center;gap:10px;padding:14px 32px;background:var(--accent);color:var(--bg);font-size:14px;font-weight:700;border:none;border-radius:100px;cursor:pointer;text-decoration:none;transition:all .3s;margin-top:8px}
+.hero-cta-btn:hover{background:var(--accent-deep);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,212,170,.3)}
+.hero-cta-btn svg{width:16px;height:16px}
+
+.saascend-tag{font-size:12px;color:var(--text-dim);margin-top:12px;animation:fadeUp .6s .4s ease both}
+.saascend-tag a{color:var(--accent);text-decoration:none}
+
+/* -- NAV -- */
+.audit-nav{position:sticky;top:48px;z-index:100;background:rgba(11,14,17,.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
+.audit-nav .container{display:flex;gap:0;overflow-x:auto;scrollbar-width:none}
+.audit-nav .container::-webkit-scrollbar{display:none}
+.nav-item{padding:14px 18px;font-size:13px;font-weight:500;color:var(--text-muted);text-decoration:none;white-space:nowrap;border-bottom:2px solid transparent;transition:all .2s}
+.nav-item:hover{color:var(--text)}.nav-item.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+/* -- OVERVIEW -- */
+.overview-section{padding:48px 0 32px;border-bottom:1px solid var(--border)}
+.overview-grid{display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-top:24px}
+.overview-left h2{font-family:var(--display);font-size:28px;font-weight:700;margin-bottom:16px}
+.overview-left p{color:var(--text-muted);font-size:15px;line-height:1.7}
+.overview-bullets{display:flex;flex-direction:column;gap:12px;margin-top:20px}
+.overview-bullet{display:flex;align-items:flex-start;gap:12px;font-size:14px;color:var(--text-muted)}
+.overview-bullet .ob-icon{width:20px;height:20px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:var(--accent-glow);border-radius:6px;color:var(--accent);font-size:11px;font-weight:700;margin-top:2px}
+.overview-right{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.overview-stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:20px;text-align:center}
+.overview-stat .num{font-family:var(--mono);font-size:28px;font-weight:700;color:var(--accent)}
+.overview-stat .lbl{font-size:12px;color:var(--text-muted);margin-top:4px}
+
+/* -- SECTION -- */
+section{padding:80px 0}.section-padding-sm{padding:60px 0}
+.section-header{display:flex;align-items:baseline;gap:16px;margin-bottom:24px;border-bottom:1px solid var(--border);padding-bottom:24px}
+.section-number{font-family:var(--mono);font-size:13px;color:var(--accent);background:var(--accent-glow);padding:4px 12px;border-radius:6px}
+.section-title{font-family:var(--display);font-size:32px;font-weight:700;transition:font-family .3s}
+.section-grade{margin-left:auto;position:relative;cursor:pointer}
+.section-grade .grade-letter{font-family:var(--mono);font-size:32px;font-weight:700;padding:8px 20px;border-radius:var(--radius-sm);border:2px solid;display:block}
+.grade-a .grade-letter{color:var(--grade-a);border-color:var(--grade-a);background:rgba(0,212,170,.08)}
+.grade-b .grade-letter{color:var(--grade-b);border-color:var(--grade-b);background:rgba(91,141,239,.08)}
+.grade-c .grade-letter{color:var(--grade-c);border-color:var(--grade-c);background:rgba(255,181,71,.08)}
+.grade-d .grade-letter{color:var(--grade-d);border-color:var(--grade-d);background:rgba(255,140,66,.08)}
+.grade-f .grade-letter{color:var(--grade-f);border-color:var(--grade-f);background:rgba(255,92,92,.08)}
+
+/* Grade tooltip on hover */
+.grade-tooltip{position:absolute;top:calc(100% + 12px);right:0;background:var(--surface-raised);border:1px solid var(--border);border-radius:var(--radius-sm);padding:20px;width:280px;opacity:0;visibility:hidden;transition:all .25s;z-index:50;pointer-events:none}
+.section-grade:hover .grade-tooltip{opacity:1;visibility:visible;pointer-events:auto}
+.gt-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:13px}
+.gt-row .gt-dot{width:8px;height:8px;border-radius:50%;margin-right:8px}
+.gt-row .gt-label{color:var(--text-muted);display:flex;align-items:center}
+.gt-row .gt-val{font-family:var(--mono);font-weight:700;font-size:13px}
+
+/* Section description */
+.section-desc{font-size:15px;color:var(--text-muted);max-width:700px;margin-bottom:32px;line-height:1.65}
+.section-assessed{font-size:13px;color:var(--text-dim);margin-top:8px;padding:10px 16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);display:inline-block}
+
+/* -- CARDS -- */
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:20px;margin-bottom:24px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;transition:all .3s;position:relative;overflow:hidden;cursor:pointer}
+.card:hover{border-color:var(--border-accent);transform:translateY(-2px)}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.card.critical::before{background:var(--danger)}.card.warning::before{background:var(--warn)}.card.info::before{background:var(--info)}.card.pass::before{background:var(--accent)}
+.card-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px}
+.card-tag{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;padding:4px 10px;border-radius:6px}
+.card-tag.critical{color:var(--danger);background:var(--danger-glow)}
+.card-tag.warning{color:var(--warn);background:var(--warn-glow)}
+.card-tag.info{color:var(--info);background:var(--info-glow)}
+.card-tag.pass{color:var(--accent);background:var(--accent-glow)}
+.card-impact{font-size:12px;font-weight:700;color:#FFF;background:rgba(255,255,255,.08);padding:4px 10px;border-radius:6px}
+.card-title{font-size:17px;font-weight:700;margin-bottom:8px}
+.card-desc{font-size:14px;color:var(--text-muted);line-height:1.55}
+.card-expand{font-size:12px;color:var(--accent);margin-top:12px;display:flex;align-items:center;gap:4px;opacity:.7;transition:opacity .2s}
+.card:hover .card-expand{opacity:1}
+
+/* -- MODAL -- */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);z-index:300;display:none;align-items:center;justify-content:center;padding:32px}
+.modal-overlay.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);max-width:680px;width:100%;max-height:80vh;overflow-y:auto;padding:40px;position:relative}
+.modal-close{position:absolute;top:16px;right:16px;background:var(--surface-raised);border:1px solid var(--border);border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-muted);font-size:18px;transition:all .2s}
+.modal-close:hover{background:var(--surface-hover);color:var(--text)}
+.modal-tag{display:inline-block;margin-bottom:16px}
+.modal-title{font-size:22px;font-weight:700;margin-bottom:12px}
+.modal-body{color:var(--text-muted);font-size:15px;line-height:1.7}
+.modal-body h4{color:var(--text);font-size:16px;margin:20px 0 8px}
+.modal-body ul{margin:8px 0 8px 20px}
+.modal-body li{margin-bottom:6px}
+
+/* -- TABLES -- */
+.findings-table{width:100%;border-collapse:collapse;margin-bottom:24px;background:var(--surface);border-radius:var(--radius);overflow:hidden;border:1px solid var(--border)}
+.findings-table th{text-align:left;padding:14px 20px;font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--text-dim);background:var(--surface-raised);border-bottom:1px solid var(--border)}
+.findings-table td{padding:14px 20px;font-size:14px;border-bottom:1px solid var(--border);vertical-align:top}
+.findings-table tr:last-child td{border-bottom:none}
+.findings-table tr:hover td{background:var(--surface-hover)}
+.severity-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:8px}
+.severity-dot.crit{background:var(--danger)}.severity-dot.warn{background:var(--warn)}.severity-dot.ok{background:var(--accent)}.severity-dot.low{background:var(--info)}
+.status-pill{font-size:11px;font-weight:700;padding:3px 10px;border-radius:100px;text-transform:uppercase;letter-spacing:.5px}
+.status-pill.red{color:var(--danger);background:var(--danger-glow)}
+.status-pill.yellow{color:var(--warn);background:var(--warn-glow)}
+.status-pill.green{color:var(--accent);background:var(--accent-glow)}
+
+/* -- TEAM TAGS -- */
+.team-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.team-tag{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:3px 8px;border-radius:4px;border:1px solid}
+.team-tag.sales{color:#5B8DEF;border-color:rgba(91,141,239,.3);background:rgba(91,141,239,.08)}
+.team-tag.marketing{color:#C78FFF;border-color:rgba(199,143,255,.3);background:rgba(199,143,255,.08)}
+.team-tag.cs{color:#FFB547;border-color:rgba(255,181,71,.3);background:rgba(255,181,71,.08)}
+.team-tag.revops{color:#00D4AA;border-color:rgba(0,212,170,.3);background:rgba(0,212,170,.08)}
+
+/* -- KPI FILTER -- */
+.kpi-filters{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap}
+.kpi-filter-btn{padding:6px 16px;font-size:12px;font-weight:600;border:1px solid var(--border);border-radius:100px;background:transparent;color:var(--text-muted);cursor:pointer;transition:all .2s;font-family:var(--font)}
+.kpi-filter-btn:hover{border-color:var(--border-accent);color:var(--text)}
+.kpi-filter-btn.active{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+
+/* -- PROGRESS BAR -- */
+.progress-bar{height:8px;background:var(--border);border-radius:4px;overflow:hidden;margin-top:12px}
+.progress-fill{height:100%;border-radius:4px}
+
+/* -- ROI -- */
+.roi-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:48px;margin:32px 0}
+.roi-grid{display:grid;grid-template-columns:1fr 1fr;gap:48px;margin-top:32px}
+.roi-col h3{font-size:18px;margin-bottom:24px;display:flex;align-items:center;gap:10px}
+.roi-col h3 .dot{width:12px;height:12px;border-radius:50%}
+.roi-col.cost-fix h3 .dot{background:var(--accent)}.roi-col.cost-ignore h3 .dot{background:var(--danger)}
+.roi-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border)}
+.roi-row:last-child{border-bottom:none}
+.roi-label{font-size:14px;color:var(--text-muted)}.roi-value{font-family:var(--mono);font-size:15px;font-weight:700}
+.roi-total{margin-top:16px;padding:20px;border-radius:var(--radius-sm);display:flex;justify-content:space-between;align-items:center}
+.roi-total.fix{background:var(--accent-glow);border:1px solid rgba(0,212,170,.2)}
+.roi-total.ignore{background:var(--danger-glow);border:1px solid rgba(255,92,92,.2)}
+.roi-total .label{font-size:16px;font-weight:700}
+.roi-total .amount{font-family:var(--mono);font-size:28px;font-weight:700}
+.roi-total.fix .amount{color:var(--accent)}.roi-total.ignore .amount{color:var(--danger)}
+.slider-group{margin-bottom:24px}
+.slider-group label{display:flex;justify-content:space-between;font-size:14px;color:var(--text-muted);margin-bottom:8px}
+.slider-group label span{font-family:var(--mono);color:var(--text);font-weight:700}
+input[type="range"]{-webkit-appearance:none;width:100%;height:6px;background:var(--border);border-radius:3px;outline:none}
+input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;background:var(--accent);border-radius:50%;cursor:pointer;border:3px solid var(--bg)}
+
+/* -- IMPACT HIGHLIGHT CARDS -- */
+.impact-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;margin-bottom:32px}
+.impact-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:24px;text-align:center}
+.impact-card .ic-icon{font-size:28px;margin-bottom:8px}
+.impact-card .ic-value{font-family:var(--mono);font-size:24px;font-weight:700;color:var(--danger)}
+.impact-card .ic-label{font-size:13px;color:var(--text-muted);margin-top:4px}
+.impact-card.positive .ic-value{color:var(--accent)}
+
+/* -- CLOUD -- */
+.cloud-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;margin-top:24px}
+.cloud-item{padding:18px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--surface);text-align:center;transition:all .3s;cursor:pointer}
+.cloud-item.active{border-color:var(--accent);background:var(--accent-glow)}
+.cloud-item.recommended{border-color:var(--warn);background:var(--warn-glow);border-style:dashed}
+.cloud-item.inactive{opacity:.4;cursor:default}
+.cloud-name{font-size:13px;font-weight:700;margin-bottom:3px}
+.cloud-status{font-size:11px;color:var(--text-muted)}
+.cloud-item.active .cloud-status{color:var(--accent)}.cloud-item.recommended .cloud-status{color:var(--warn)}
+
+/* -- ENRICHMENT -- */
+.enrichment-bar{display:flex;gap:24px;flex-wrap:wrap;padding:24px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:32px}
+.enrich-item{display:flex;flex-direction:column}
+.enrich-label{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text-dim)}
+.enrich-value{font-size:15px;font-weight:700;color:var(--text);margin-top:2px}
+
+/* -- CTA -- */
+.cta-section{text-align:center;padding:80px 0;position:relative}
+.cta-section::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(0,212,170,.06) 0%,transparent 70%)}
+.cta-title{font-family:var(--display);font-size:44px;font-weight:900;margin-bottom:16px;position:relative}
+.cta-sub{font-size:17px;color:var(--text-muted);margin-bottom:40px;max-width:540px;margin-left:auto;margin-right:auto;position:relative}
+.cta-btn{display:inline-flex;align-items:center;gap:12px;padding:18px 40px;background:var(--accent);color:var(--bg);font-size:16px;font-weight:700;border:none;border-radius:100px;cursor:pointer;text-decoration:none;transition:all .3s;position:relative}
+.cta-btn:hover{background:var(--accent-deep);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,212,170,.3)}
+.cta-btn svg{width:20px;height:20px}
+
+/* Client logos */
+.client-logos{display:flex;justify-content:center;gap:40px;align-items:center;margin-top:48px;flex-wrap:wrap;opacity:.5;position:relative}
+.client-logos span{font-size:14px;font-weight:600;color:var(--text-dim);letter-spacing:1px}
+
+/* Inline CTA banner */
+.inline-cta{background:linear-gradient(135deg,rgba(0,212,170,.08),rgba(91,141,239,.08));border:1px solid rgba(0,212,170,.15);border-radius:var(--radius);padding:24px 32px;display:flex;align-items:center;justify-content:space-between;margin:32px 0;flex-wrap:wrap;gap:16px}
+.inline-cta p{font-size:15px;color:var(--text-muted);max-width:500px}
+.inline-cta p strong{color:var(--text)}
+.inline-cta a{padding:10px 24px;background:var(--accent);color:var(--bg);font-size:13px;font-weight:700;border-radius:100px;text-decoration:none;white-space:nowrap;transition:all .2s}
+.inline-cta a:hover{background:var(--accent-deep)}
+
+footer{padding:48px 0;border-top:1px solid var(--border);text-align:center;font-size:13px;color:var(--text-dim)}
+footer a{color:var(--accent);text-decoration:none}
+
+.reveal{opacity:0;transform:translateY(30px);transition:all .6s cubic-bezier(.4,0,.2,1)}.reveal.visible{opacity:1;transform:translateY(0)}
+
+@media(max-width:768px){
+  .roi-grid,.overview-grid{grid-template-columns:1fr}.hero-content{flex-direction:column}.hero-right{align-items:flex-start}
+  .section-header{flex-wrap:wrap}.section-grade{margin-left:0}.card-grid{grid-template-columns:1fr}
+  .roi-section{padding:24px}.persona-bar .container{overflow-x:auto;scrollbar-width:none}
+  .inline-cta{flex-direction:column;text-align:center}.impact-cards{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+<div class="orb orb-1"></div><div class="orb orb-2"></div><div class="orb orb-3"></div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-close" onclick="closeModal()">&#x2715;</div>
+    <div class="modal-tag" id="modalTag"></div>
+    <h3 class="modal-title" id="modalTitle"></h3>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<!-- PERSONA BAR -->
+<div class="persona-bar">
+  <div class="container">
+    <span class="persona-bar-label">Audience</span>
+    <button class="persona-btn" data-persona="operator" onclick="setPersona('operator')"><span class="emoji">&#9881;&#65039;</span> The Operator</button>
+    <button class="persona-btn" data-persona="closer" onclick="setPersona('closer')"><span class="emoji">&#127919;</span> The Closer</button>
+    <button class="persona-btn" data-persona="strategist" onclick="setPersona('strategist')"><span class="emoji">&#9823;&#65039;</span> The Strategist</button>
+    <button class="persona-btn" data-persona="guardian" onclick="setPersona('guardian')"><span class="emoji">&#128737;&#65039;</span> The Guardian</button>
+    <button class="persona-btn" data-persona="builder" onclick="setPersona('builder')"><span class="emoji">&#128295;</span> The Builder</button>
+    <button class="persona-btn active" data-persona="roast" onclick="setPersona('roast')"><span class="emoji">&#128293;</span> The Roast</button>
+  </div>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="container">
+    <div class="hero-content">
+      <div class="hero-left">
+        <div class="hero-badge" id="heroBadge">Brutally Honest Org Roast</div>
+        <h1 class="hero-title" id="heroTitle">Your Salesforce org<br>is leaving <span class="hl" id="heroAmount">$2M</span><br>on the table.</h1>
+        <p class="hero-sub" id="heroSub">We scanned 697 metadata objects across 6 audit dimensions in SaaScend's own Salesforce org. The cobbler's children have no shoes. Here's the damage report.</p>
+        <div class="saascend-tag">Powered by <a href="https://saascend.co">SaaScend</a> — Digital Transformation for Revenue Teams</div>
+      </div>
+      <div class="hero-right">
+        <div class="hero-score">
+          <div class="score-ring">
+            <svg viewBox="0 0 170 170"><circle class="track"/><circle class="fill"/></svg>
+            <div class="score-value"><span class="score-number">54</span><span class="score-label" id="scoreLabel">Org Health</span></div>
+          </div>
+          <div class="score-meta">
+            <div class="score-meta-item"><div class="smi-dot" style="background:var(--danger)"></div><span class="smi-label" id="metaCritLabel">Critical Findings</span><span class="smi-value" style="color:var(--danger)">2</span></div>
+            <div class="score-meta-item"><div class="smi-dot" style="background:var(--warn)"></div><span class="smi-label">Warnings</span><span class="smi-value" style="color:var(--warn)">8</span></div>
+            <div class="score-meta-item"><div class="smi-dot" style="background:var(--info)"></div><span class="smi-label">Recommendations</span><span class="smi-value" style="color:var(--info)">2</span></div>
+            <div class="score-meta-item"><div class="smi-dot" style="background:var(--accent)"></div><span class="smi-label">Passing</span><span class="smi-value" style="color:var(--accent)">6</span></div>
+          </div>
+        </div>
+        <a href="mailto:craig@saascend.co?subject=Audit%20Follow-Up%20%E2%80%94%20SaaScend" class="hero-cta-btn">Get In Touch <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- NAV -->
+<nav class="audit-nav">
+  <div class="container">
+    <a href="#overview" class="nav-item active">Overview</a>
+    <a href="#data" class="nav-item">Data Architecture</a>
+    <a href="#automations" class="nav-item">Automations</a>
+    <a href="#integrations" class="nav-item">Integrations</a>
+    <a href="#reporting" class="nav-item">Reporting</a>
+    <a href="#kpis" class="nav-item">KPIs</a>
+    <a href="#clouds" class="nav-item">Cloud Coverage</a>
+    <a href="#roi" class="nav-item">ROI Calculator</a>
+  </div>
+</nav>
+
+<!-- OVERVIEW -->
+<section id="overview" class="overview-section">
+  <div class="container">
+    <div class="overview-grid reveal">
+      <div class="overview-left">
+        <h2>RevOps Digital Transformation Assessment</h2>
+        <p id="overviewDesc">This audit evaluates SaaScend's own Salesforce org against our proprietary RevOps benchmark — 80+ operational capabilities that high-performing revenue teams rely on to scale predictably. The assessment covers data foundation, process automation maturity, integration completeness, reporting readiness, KPI measurability, and cloud investment strategy.</p>
+        <div class="overview-bullets">
+          <div class="overview-bullet"><div class="ob-icon">01</div><div><strong style="color:var(--text)">Data Architecture</strong> — Object model quality, field hygiene, relationship integrity</div></div>
+          <div class="overview-bullet"><div class="ob-icon">02</div><div><strong style="color:var(--text)">Automations</strong> — Process automation coverage across the full revenue lifecycle</div></div>
+          <div class="overview-bullet"><div class="ob-icon">03</div><div><strong style="color:var(--text)">Integrations</strong> — Connected systems, data flow, and redundancy analysis</div></div>
+          <div class="overview-bullet"><div class="ob-icon">04</div><div><strong style="color:var(--text)">Reporting & KPIs</strong> — Dashboard coverage and GTM metric measurability</div></div>
+          <div class="overview-bullet"><div class="ob-icon">05</div><div><strong style="color:var(--text)">KPI Measurability</strong> — Whether core revenue metrics are calculable from Salesforce</div></div>
+          <div class="overview-bullet"><div class="ob-icon">06</div><div><strong style="color:var(--text)">Cloud Coverage</strong> — Active vs recommended Salesforce product investment</div></div>
+        </div>
+      </div>
+      <div class="overview-right">
+        <div class="overview-stat"><div class="num">697</div><div class="lbl">Metadata Objects Scanned</div></div>
+        <div class="overview-stat"><div class="num">1,021</div><div class="lbl">Custom Fields Assessed</div></div>
+        <div class="overview-stat"><div class="num">365</div><div class="lbl">Custom Objects</div></div>
+        <div class="overview-stat"><div class="num">40</div><div class="lbl">Record Types</div></div>
+        <div class="overview-stat"><div class="num">217</div><div class="lbl">Active Flows</div></div>
+        <div class="overview-stat"><div class="num">6</div><div class="lbl">Audit Dimensions</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 01 DATA ARCHITECTURE -->
+<section id="data">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-number">01</span>
+      <h2 class="section-title">Data Architecture</h2>
+      <div class="section-grade grade-c">
+        <span class="grade-letter">C</span>
+        <div class="grade-tooltip">
+          <div class="gt-row"><span class="gt-label"><span class="gt-dot" style="background:var(--danger)"></span>Critical</span><span class="gt-val" style="color:var(--danger)">0</span></div>
+          <div class="gt-row"><span class="gt-label"><span class="gt-dot" style="background:var(--warn)"></span>Warning</span><span class="gt-val" style="color:var(--warn)">3</span></div>
+          <div class="gt-row"><span class="gt-label"><span class="gt-dot" style="background:var(--info)"></span>Recommendation</span><span class="gt-val" style="color:var(--info)">1</span></div>
+          <div class="gt-row"><span class="gt-label"><span class="gt-dot" style="background:var(--accent)"></span>Passing</span><span class="gt-val" style="color:var(--accent)">2</span></div>
+          <div style="border-top:1px solid var(--border);margin-top:8px;padding-top:8px;font-size:12px;color:var(--text-dim)">Weight: 30% of total score. Score: 65. Core revenue fields exist but massive field bloat and unpopulated hierarchies drag the grade down.</div>
+        </div>
+      </div>
+    </div>
+
+    <p class="section-desc reveal" id="dataDesc">Data architecture is the foundation of your entire revenue operation. Every dashboard, automation, forecast, and AI model depends on the quality, structure, and completeness of your data model. The good news: your core revenue fields exist. The bad news: they're buried under 1,021 custom fields across four objects.</p>
+
+    <div class="section-assessed reveal">Assessed 1,021 custom fields, 365 custom objects, 40 record types across Lead (237 fields), Account (209 fields), Contact (258 fields), and Opportunity (317 fields).</div>
+
+    <div class="card-grid" style="margin-top:24px">
+      <div class="card pass reveal" onclick="openModal('pass','Deal Type Field Exists','Deal_Type__c picklist exists on Opportunity with values including DSE Type. Revenue segmentation by deal motion is possible.','<h4>What We Found</h4><p>Deal_Type__c found on Opportunity. Values include Deal Type and DSE Type picklists. This is a critical field that most orgs we audit are missing entirely.</p><h4>Recommendation</h4><p>Ensure values are standardised (New Business, Expansion, Renewal, Cross-Sell) and enforced at creation via validation rule. Current values work but could be tightened for cleaner segmentation.</p><h4>Status</h4><p>Passing. No build required. Minor cleanup recommended.</p>')">
+        <div class="card-header"><span class="card-tag pass">Passing</span><span class="card-impact">No Action Needed</span></div>
+        <div class="card-title" data-finding="dealtype-title">Deal Type Field Exists</div>
+        <div class="card-desc" data-finding="dealtype-desc">Deal_Type__c picklist exists on Opportunity with values including DSE Type. Revenue segmentation by deal motion is possible.</div>
+        <div class="card-expand">View deep-dive &#8594;</div>
+      </div>
+
+      <div class="card pass reveal" onclick="openModal('pass','MRR/ARR/NRR Fields Present','MRR__c, ARR__c, and NRR__c all exist on Opportunity with roll-up summaries. Subscription economics are trackable from the system of record.','<h4>What We Found</h4><p>Total_MRR__c, Total_ARR__c, Total_NRR__c roll-up summaries exist on Opportunity. The Opp Products - Update ARR/MRR/NRR flow auto-calculates these values from line items.</p><h4>Assessment</h4><p>This is a strong foundation. Most orgs we audit at your stage don\'t have subscription economics in Salesforce at all. The auto-calculation flow means values are system-derived, not manually entered.</p><h4>Status</h4><p>Passing. Strong foundation for unit economics reporting.</p>')">
+        <div class="card-header"><span class="card-tag pass">Passing</span><span class="card-impact">Strong Foundation</span></div>
+        <div class="card-title" data-finding="mrr-title">MRR/ARR/NRR Fields Present</div>
+        <div class="card-desc" data-finding="mrr-desc">MRR__c, ARR__c, and NRR__c all exist on Opportunity with roll-up summaries. Subscription economics are trackable from the system of record.</div>
+        <div class="card-expand">View deep-dive &#8594;</div>
+      </div>
+
+      <div class="card warning reveal" onclick="openModal('warning','Massive Field Bloat Across Core Objects','Lead has 237 custom fields, Account has 209, Contact has 258, Opportunity has 317. Managed packages account for ~60% but the remaining org-created fields need an audit.','<h4>The Scale of the Problem</h4><p>1,021 custom fields across 4 core objects. Managed packages contributing include scaleMatters, DaScoopComposer (Groove), DOZISF (ZoomInfo), cbit (Clearbit), dupcheck (Plauti), and pi (Pardot).</p><h4>The Real Issue</h4><p>Managed package fields are expected. The concern is org-created duplicates: multiple funding round fields, multiple UTM tracking fields, and fields with identical purposes but different API names.</p><h4>Recommendation</h4><ul><li>Run a field utilisation audit across all four objects</li><li>Hide zero-population fields from page layouts immediately</li><li>Deprecate and archive fields with less than 1% population after 90-day notice</li><li>Document which managed package owns which fields</li></ul><h4>Build Effort</h4><p>8-12 hours for full audit and cleanup.</p>')">
+        <div class="card-header"><span class="card-tag warning">Warning</span><span class="card-impact">Data Quality</span></div>
+        <div class="card-title" data-finding="fields-title">Massive Field Bloat Across Core Objects</div>
+        <div class="card-desc" data-finding="fields-desc">Lead has 237 custom fields, Account has 209, Contact has 258, Opportunity has 317. Managed packages (scaleMatters, Groove, ZoomInfo, Clearbit, Pardot) account for ~60% but the remaining org-created fields need an audit.</div>
+        <div class="card-expand">View deep-dive &#8594;</div>
+      </div>
+
+      <div class="card warning reveal" onclick="openModal('warning','Opportunity Stages Have Legacy Overlap','9 stages found including both Proposal and Proposal/Price Quote. No validation rules enforce exit criteria. 100 open opps across Qualified (58), Proposal (29), Contract Sent (8), Negotiation/Review (2).','<h4>Stage Analysis</h4><p>Stage list: Prospecting, Qualified, Proposal, Proposal/Price Quote, Contract Sent, Negotiation/Review, Audit, Closed Won (1,644), Closed Lost (1,317).</p><h4>The Problem</h4><p>Duplicate proposal stages (Proposal and Proposal/Price Quote) create ambiguity for reps and make pipeline analysis unreliable. No validation rules found enforcing exit criteria at any stage gate.</p><h4>Recommendation</h4><ul><li>Consolidate duplicate proposal stages into one</li><li>Add validation rules with required fields at each stage transition</li><li>Enable Path component for visual guidance</li><li>Document exit criteria for each stage</li></ul><h4>Build Effort</h4><p>4-6 hours including testing and rep communication.</p>')">
+        <div class="card-header"><span class="card-tag warning">Warning</span><span class="card-impact">Pipeline Integrity</span></div>
+        <div class="card-title" data-finding="stages-title">Opportunity Stages Have Legacy Overlap</div>
+        <div class="card-desc" data-finding="stages-desc">9 stages found including both 'Proposal' and 'Proposal/Price Quote' — legacy overlap. No validation rules enforce exit criteria. 100 open opps across Qualified (58), Proposal (29), Contract Sent (8), Negotiation/Review (2).</div>
+        <div class="card-expand">View deep-dive &#8594;</div>
+      </div>
+
+      <div class="card warning reveal" onclick="openModal('warning','Account Hierarchy Barely Populated','ParentId exists but only 1% of accounts (134 out of 12,600) have it populated. Account-based strategies and parent-level revenue rollups are impossible at this adoption level.','<h4>The Data</h4><p>12,600 total accounts with Record Types: Client, Partner, Prospect. Only 134 have ParentId populated (1.06%).</p><h4>Why This Matters for a Consulting Firm</h4><p>SaaScend manages client relationships across multiple entities. Without parent-child hierarchy, you cannot: roll up revenue by client group, identify multi-entity engagement opportunities, or calculate true client lifetime value.</p><h4>Recommendation</h4><ul><li>Populate ParentId for top 100 client accounts using existing knowledge</li><li>Use ZoomInfo or Clearbit data (already integrated) to bulk-populate corporate hierarchies</li><li>Add hierarchy enforcement to Account creation process</li></ul><h4>Build Effort</h4><p>4-6 hours for bulk update + process enforcement.</p>')">
+        <div class="card-header"><span class="card-tag warning">Warning</span><span class="card-impact">Operational Efficiency</span></div>
+        <div class="card-title" data-finding="hierarchy-title">Account Hierarchy Barely Populated</div>
+        <div class="card-desc" data-finding="hierarchy-desc">ParentId exists but only 1% of accounts (134 out of 12,600) have it populated. Account-based strategies, parent-level revenue rollups, and TAM analysis are impossible at this adoption level.</div>
+        <div class="card-expand">View deep-dive &#8594;</div>
+      </div>
+
+      <div class="card pass reveal" onclick="openModal('pass','Contact Model Is Well-Instrumented','309 fields on Contact with comprehensive lifecycle tracking, sales activity tracking, and deal performance metrics.','<h4>What We Found</h4><p>Contact has Lifecycle_Stage__c, First/Last Touch Campaign, MQL dates, attribution UTMs, sales activity rollups (Total Pipeline, Close Rate, Days Since Last Deal). Record Types: Client, Partner, Prospect.</p><h4>Assessment</h4><p>This is genuinely impressive. Whoever built this contact model knew what they were doing. Lifecycle tracking, attribution, and deal performance metrics on Contact give you a complete picture of every relationship.</p><h4>Status</h4><p>Passing. Strong foundation for engagement tracking and rep performance analysis.</p>')">
+        <div class="card-header"><span class="card-tag pass">Passing</span><span class="card-impact">Strong Foundation</span></div>
+        <div class="card-title" data-finding="contact-title">Contact Model Is Well-Instrumented</div>
+        <div class="card-desc" data-finding="contact-desc">309 fields on Contact with comprehensive lifecycle tracking (Lifecycle_Stage__c, MQL dates, attribution fields), sales activity tracking, and deal performance metrics. Whoever built this knew what they were doing.</div>
+        <div class="card-expand">View deep-dive &#8594;</div>
+      </div>
+    </div>
+
+    <table class="findings-table reveal">
+      <thead><tr><th>Object</th><th>Health</th><th>Custom Fields</th><th>Key Findings</th></tr></thead>
+      <tbody>
+        <tr><td>Lead</td><td><span class="status-pill yellow">Warning</span></td><td>237</td><td>Massive field count, ~60% managed packages. Grading flow exists. Routing partial.</td></tr>
+        <tr><td>Account</td><td><span class="status-pill yellow">Warning</span></td><td>209</td><td>ParentId at 1% population. Field bloat from managed packages.</td></tr>
+        <tr><td>Contact</td><td><span class="status-pill green">Healthy</span></td><td>258</td><td>Strong lifecycle tracking, attribution, activity rollups. Best-instrumented object.</td></tr>
+        <tr><td>Opportunity</td><td><span class="status-pill yellow">Warning</span></td><td>317</td><td>Deal type exists, ARR/MRR exists. Stage overlap. Most field-heavy object.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- 02 AUTOMATIONS -->
+<section id="automations" style="background:var(--surface)">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-number">02</span><h2 class="section-title">Automations</h2>
+      <div class="section-grade grade-d"><span class="grade-letter">D</span>
+        <div class="grade-tooltip">
+          <div class="gt-row"><span class="gt-label"><span class="gt-dot" style="background:var(--danger)"></span>Critical</span><span class="gt-val" style="color:var(--danger)">1</span></div>
+          <div class="gt-row"><span class="gt-label"><span class="gt-dot" style="background:var(--warn)"></span>Warning</span><span class="gt-val" style="color:var(--warn)">2</span></div>
+          <div class="gt-row"><span class="gt-label"><span class="gt-dot" style="background:var(--info)"></span>Recommendation</span><span class="gt-val" style="color:var(--info)">0</span></div>
+          <div class="gt-row"><span class="gt-label"><span class="gt-dot" style="background:var(--accent)"></span>Passing</span><span class="gt-val" style="color:var(--accent)">1</span></div>
+          <div style="border-top:1px solid var(--border);margin-top:8px;padding-top:8px;font-size:12px;color:var(--text-dim)">Weight: 30% of total score. Score: 40. Stage tracking exists via scaleMatters but 113 triggers + 217 flows create a technical debt bomb. Lead routing is fragmented.</div>
+        </div>
+      </div>
+    </div>
+
+    <p class="section-desc reveal" id="autoDesc">Automation is the operational engine of your revenue team. The pieces are here — round-robin fields, lead grading, stage tracking via scaleMatters — but they're fragmented across 113 Apex triggers, 217 flows, and 14 legacy Process Builders. Nothing is orchestrated.</p>
+
+    <div class="section-assessed reveal">Assessed 113 active Apex triggers, 217 active flows (75 record-triggered, 48 screen, 5 scheduled), 14 legacy Process Builders across all objects.</div>
+
+    <div class="card-grid" style="margin-top:24px">
+      <div class="card warning reveal" onclick="openModal('warning','Lead Routing Is Partial','Round-robin fields exist and lead-to-account matching flow runs, but no formal Assignment Rule is active. Lead grading flow exists but routing logic is fragmented.','<h4>What Exists</h4><ul><li>Round_Robin_Number__c formula field</li><li>Round_Robin_Name__c formula field</li><li>LEAD - Root Domain to Account Matching flow</li><li>LEAD - GRADING flow</li><li>Lead_Flow_Lead_Assigned__c field</li><li>maps__AssignmentRule__c lookup</li></ul><h4>The Problem</h4><p>The pieces of a routing engine all exist but they aren\'t connected into a single orchestration flow. No formal LeadAssignmentRule is active, meaning routing depends on fragmented flow logic.</p><h4>Recommendation</h4><p>Consolidate grading, matching, round-robin, and assignment into a single orchestration flow with SLA timestamps. Build effort: 6-8 hours.</p>')">
+        <div class="card-header"><span class="card-tag warning">Warning</span><span class="card-impact">Pipeline Leakage</span></div>
+        <div class="card-title" data-finding="routing-title">Lead Routing Is Partial</div>
+        <div class="card-desc" data-finding="routing-desc">Round-robin fields (Round_Robin_Number__c, Round_Robin_Name__c) exist and LEAD - Root Domain to Account Matching flow runs, but no formal Assignment Rule is active. Lead grading flow (LEAD - GRADING) exists but routing logic is fragmented.</div>
+        <div class="card-expand">View deep-dive &#8594;</div>
+      </div>
+
+      <div class="card pass reveal" onclick="openModal('pass','Stage Progression Is Tracked','scaleMatters tracks stage dates (S1-S10), prior stage, and stage values. Opportunity - Closed Creates Snapshot flow captures deal state at close.','<h4>What Exists</h4><ul><li>scaleMatters__S1_Date__c through S10 (stage entry timestamps)</li><li>scaleMatters__Prior_Stage__c</li><li>scaleMatters__S1_Value__c through S10 (value at each stage)</li><li>OPPORTUNITY - Closed Creates Snapshot flow</li><li>Opportunity_Snapshot__c custom object</li><li>Deal_Alerts__c formula, Stalled_Deal__c formula</li><li>Days_Since_Last_Activity__c</li></ul><h4>Assessment</h4><p>Stage instrumentation is strong thanks to scaleMatters. Pipeline telemetry exists and deal health formulas are in place. This is a solid foundation that most orgs don\'t have.</p><h4>Status</h4><p>Passing. The data is being captured — the gap is that nobody is looking at it (see Reporting section).</p>')">
+        <div class="card-header"><span class="card-tag pass">Passing</span><span class="card-impact">Strong Foundation</span></div>
+        <div class="card-title" data-finding="stage-auto-title">Stage Progression Is Tracked</div>
+        <div class="card-desc" data-finding="stage-auto-desc">scaleMatters tracks stage dates (S1-S10), prior stage, and stage values. Opportunity - Closed Creates Snapshot flow captures deal state at close. Pipeline telemetry exists.</div>
+        <div class="card-expand">View deep-dive &#8594;</div>
+      </div>
+
+      <div class="card warning reveal" onclick="openModal('warning','Forecasting Is Partial','Revenue_Forecast__c picklist and Probability_Forecast__c exist. Custom forecast mapping flow runs. But no Collaborative Forecasting enabled, no Quota objects, no Target-to-Actual linkage.','<h4>What Exists</h4><ul><li>Revenue_Forecast__c picklist on Opportunity</li><li>Probability_Forecast__c field</li><li>OPPORTUNITY - Rev Forecast to Forecast Category flow</li><li>Target__c custom object</li><li>Goals to Actuals dashboard</li></ul><h4>The Gap</h4><p>Collaborative Forecasting doesn\'t appear to be enabled. The Target__c object and Goals to Actuals dashboard show intent, but there\'s no formal quota-to-attainment linkage using native Salesforce forecasting features.</p><h4>Recommendation</h4><p>Enable Collaborative Forecasting, connect Target__c to native Quota, link Revenue_Forecast__c mapping to ForecastCategory. Build effort: 8-10 hours.</p>')">
+        <div class="card-header"><span class="card-tag warning">Warning</span><span class="card-impact">Revenue Predictability</span></div>
+        <div class="card-title" data-finding="forecast-title">Forecasting Is Partial</div>
+        <div class="card-desc" data-finding="forecast-desc">Revenue_Forecast__c picklist and Probability_Forecast__c exist. OPPORTUNITY - Rev Forecast to Forecast Category flow maps custom forecasting. But no Collaborative Forecasting enabled, no Quota objects, no Target-to-Actual linkage.</div>
+        <div class="card-expand">View deep-dive &#8594;</div>
+      </div>
+
+      <div class="card critical reveal" onclick="openModal('critical','113 Apex Triggers + 217 Flows = Technical Debt Bomb','113 active Apex triggers, 217 active flows, and 14 legacy Process Builders. Multiple managed packages competing on the same objects. Execution order is non-deterministic.','<h4>The Scope</h4><p>Managed package triggers from: scaleMatters, DaScoopComposer (Groove), dupcheck (Plauti), cbit (Clearbit), DOZISF (ZoomInfo), pi (Pardot), pqcrush (Prolifiq), rh2 (Rollup Helper), maps (Salesforce Maps), pandadoc, slackv2. Plus org-created triggers.</p><h4>Flow Breakdown</h4><ul><li>75 record-triggered flows</li><li>48 screen flows</li><li>5 scheduled flows</li><li>14 legacy Process Builders (should be zero)</li></ul><h4>The Risk</h4><p>75 record-triggered flows fire alongside 113 Apex triggers on the same objects. Execution order across managed packages is non-deterministic. Governor limit exceptions, field overwrite conflicts, and data corruption are all possible.</p><h4>Recommendation</h4><ul><li>Full trigger audit: document execution order per object</li><li>Consolidate org-created logic into fewer, well-ordered flows</li><li>Migrate all 14 Process Builders to flows immediately</li><li>Implement trigger framework for org-created Apex</li></ul><h4>Build Effort</h4><p>20-30 hours for audit + consolidation. Highest-priority technical debt item.</p>')">
+        <div class="card-header"><span class="card-tag critical">Critical</span><span class="card-impact">Technical Debt</span></div>
+        <div class="card-title" data-finding="conflict-title">113 Apex Triggers + 217 Flows = Technical Debt Bomb</div>
+        <div class="card-desc" data-finding="conflict-desc">113 active Apex triggers across the org, 217 active flows (75 record-triggered, 48 screen, 5 scheduled), and 14 legacy Process Builders. Multiple managed packages competing on the same objects. Execution order is non-deterministic.</div>
+        <div class="card-expand">View deep-dive &#8594;</div>
+      </div>
+    </div>
+
+    <div class="inline-cta reveal">
+      <p><strong>The automation layer has strong foundations but dangerous complexity.</strong> Stage tracking and deal alerting are in place. The priority is consolidating the 113 triggers + 217 flows before adding anything new.</p>
+      <a href="mailto:craig@saascend.co?subject=Audit%20Follow-Up%20%E2%80%94%20SaaScend">Discuss Remediation &#8594;</a>
+    </div>
+  </div>
+</section>
+
+<!-- 03 INTEGRATIONS -->
+<section id="integrations">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-number">03</span><h2 class="section-title">Integrations</h2>
+      <div class="section-grade grade-c"><span class="grade-letter">C</span>
+        <div class="grade-tooltip">
+          <div class="gt-row"><span class="gt-label"><span class="gt-dot" style="background:var(--danger)"></span>Critical</span><span class="gt-val" style="color:var(--danger)">0</span></div>
+          <div class="gt-row"><span class="gt-label"><span class="gt-dot" style="background:var(--warn)"></span>Warning</span><span class="gt-val" style="color:var(--warn)">1</span></div>
+          <div class="gt-row"><span class="gt-label"><span class="gt-dot" style="background:var(--info)"></span>Recommendation</span><span class="gt-val" style="color:var(--info)">1</span></div>
+          <div class="gt-row"><span class="gt-label"><span class="gt-dot" style="background:var(--accent)"></span>Passing</span><span class="gt-val" style="color:var(--accent)">0</span></div>
+          <div style="border-top:1px solid var(--border);margin-top:8px;padding-top:8px;font-size:12px;color:var(--text-dim)">Weight: 15% of total score. Score: 50. Dual marketing platforms create redundancy risk. Integration ecosystem is broad but governance is loose.</div>
+        </div>
+      </div>
+    </div>
+
+    <p class="section-desc reveal"><span id="intDesc">Integrations determine whether your systems work as a connected revenue platform or a collection of isolated tools.</span> SaaScend has a wide integration footprint — HubSpot, Pardot, Avoma, Tray.io, Stripe, ZoomInfo, Clearbit — but running two marketing automation platforms simultaneously is a data integrity risk.</p>
+
+    <div class="card-grid">
+      <div class="card warning reveal" onclick="openModal('warning','HubSpot AND Pardot Both Connected','HubSpot connected app exists alongside Pardot (B2BMA). Dual marketing automation platforms create data integrity risk, duplicate prospect communications, and unnecessary licensing cost.','<h4>What We Found</h4><p>Connected Apps include HubSpot (created 2021-11-10) and Pardot_to_SF_Integration + b2bma_canvas + Pardot API Access. Both marketing automation platforms have active integrations.</p><h4>The Overlap</h4><ul><li>Lead has both pi__ (Pardot) fields and Lead_Score__c (HubSpot)</li><li>UTM tracking is duplicated across both platforms</li><li>Prospect communications may fire from both systems</li></ul><h4>Recommendation</h4><p>Choose one platform, fully migrate campaigns and automations, decommission the other. For a Salesforce consulting firm, Pardot/MCAE is the natural choice — but the decision should be based on which platform drives more pipeline today.</p><h4>Estimated Savings</h4><p>$15-30K/yr in licensing consolidation plus reduced data integrity risk.</p>')">
+        <div class="card-header"><span class="card-tag warning">Warning</span><span class="card-impact">Redundancy Risk</span></div>
+        <div class="card-title" data-finding="redundancy-title">HubSpot AND Pardot Both Connected</div>
+        <div class="card-desc" data-finding="redundancy-desc">HubSpot connected app exists alongside Pardot (B2BMA). Dual marketing automation platforms create data integrity risk, duplicate prospect communications, and unnecessary licensing cost.</div>
+        <div class="card-expand">View deep-dive &#8594;</div>
+      </div>
+
+      <div class="card info reveal" onclick="openModal('info','No Product Usage Integration (Expected for Consulting)','No product telemetry integration exists — but as a consulting firm, SaaScend does not have a SaaS product to track. Client project health is tracked via Project__c and CSAT__c objects instead.','<h4>Context</h4><p>While product usage integration isn\'t relevant for a consulting firm, client engagement signals could be strengthened. The following tracking mechanisms exist:</p><ul><li>Website_Touches__c for web engagement</li><li>Interaction__c for client touchpoints</li><li>CSAT__c for customer satisfaction</li><li>Project__c and Project_Health_Updates__c for delivery tracking</li></ul><h4>External Integrations</h4><ul><li>Avoma integration via named credential (call intelligence)</li><li>Tray.io webhooks for RB2B and Opportunity changes</li><li>Stripe integration for payments</li></ul><h4>Recommendation</h4><p>Strengthen client engagement scoring using existing signals. No product usage integration needed, but client health scoring could be improved.</p>')">
+        <div class="card-header"><span class="card-tag info">Info</span><span class="card-impact">Expected for Model</span></div>
+        <div class="card-title" data-finding="product-title">No Product Usage Integration (Expected for Consulting)</div>
+        <div class="card-desc" data-finding="product-desc">No product telemetry integration exists — but as a consulting firm, SaaScend doesn't have a SaaS product to track. Client project health is tracked via Project__c, Project_Health_Updates__c, and CSAT__c objects instead.</div>
+        <div class="card-expand">View deep-dive &#8594;</div>
+      </div>
+    </div>
+
+    <table class="findings-table reveal">
+      <thead><tr><th>System</th><th>Direction</th><th>Status</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>HubSpot (Marketing)</td><td>Bi-directional</td><td><span class="status-pill yellow">Redundant</span></td><td>Active alongside Pardot — choose one</td></tr>
+        <tr><td>Pardot / MCAE</td><td>Bi-directional</td><td><span class="status-pill yellow">Redundant</span></td><td>Active alongside HubSpot — choose one</td></tr>
+        <tr><td>Stripe (Billing)</td><td>Bi-directional</td><td><span class="status-pill green">Active</span></td><td>Payment processing integration</td></tr>
+        <tr><td>ZoomInfo</td><td>One-way (ZI &#8594; SF)</td><td><span class="status-pill green">Active</span></td><td>Lead/Account enrichment</td></tr>
+        <tr><td>Clearbit</td><td>One-way (CB &#8594; SF)</td><td><span class="status-pill green">Active</span></td><td>Contact/Company enrichment</td></tr>
+        <tr><td>Avoma</td><td>One-way (Avoma &#8594; SF)</td><td><span class="status-pill green">Active</span></td><td>Call intelligence via named credential</td></tr>
+        <tr><td>Tray.io</td><td>Webhooks</td><td><span class="status-pill green">Active</span></td><td>RB2B and Opportunity change webhooks</td></tr>
+        <tr><td>Groove (DaScoopComposer)</td><td>Bi-directional</td><td><span class="status-pill green">Active</span></td><td>Sales engagement platform</td></tr>
+        <tr><td>PandaDoc</td><td>Bi-directional</td><td><span class="status-pill green">Active</span></td><td>Document generation and e-signatures</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- 04 REPORTING -->
+<section id="reporting" style="background:var(--surface)">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-number">04</span><h2 class="section-title">GTM Reporting Capabilities</h2>
+      <div class="section-grade grade-d"><span class="grade-letter">D</span>
+        <div class="grade-tooltip">
+          <div class="gt-row"><span class="gt-label"><span class="gt-dot" style="background:var(--danger)"></span>Critical</span><span class="gt-val" style="color:var(--danger)">1</span></div>
+          <div class="gt-row"><span class="gt-label"><span class="gt-dot" style="background:var(--warn)"></span>Warning</span><span class="gt-val" style="color:var(--warn)">3</span></div>
+          <div class="gt-row"><span class="gt-label"><span class="gt-dot" style="background:var(--info)"></span>Recommendation</span><span class="gt-val" style="color:var(--info)">0</span></div>
+          <div class="gt-row"><span class="gt-label"><span class="gt-dot" style="background:var(--accent)"></span>Passing</span><span class="gt-val" style="color:var(--accent)">1</span></div>
+          <div style="border-top:1px solid var(--border);margin-top:8px;padding-top:8px;font-size:12px;color:var(--text-dim)">Weight: 10% of total score. Score: 38. 69 dashboards exist but only 2 accessed recently. Pipeline health data exists but no dashboard surfaces it.</div>
+        </div>
+      </div>
+    </div>
+
+    <p class="section-desc reveal"><span id="reportDesc">Reporting is the lens through which your leadership team makes decisions.</span> SaaScend has 69 dashboards across 20+ folders, but only 2 were accessed in the last week. The biggest miss: pipeline health data exists (Deal_Alerts__c, Stalled_Deal__c, Days_Since_Last_Activity__c) but no dashboard surfaces it.</p>
+
+    <div class="card-grid">
+      <div class="card warning reveal">
+        <div class="card-header"><span class="card-tag warning">Warning</span><span class="card-impact">Sales Leadership</span></div>
+        <div class="card-title" data-finding="dash-mgr-title">Sales Dashboards Are Stale and Duplicated</div>
+        <div class="card-desc" data-finding="dash-mgr-desc">69 dashboards exist but only 2 were accessed in the last week. Pipeline Review has 3 versions (v1, v1 duplicate, v2). Most dashboards across 20+ folders have null LastReferencedDate — nobody's looking at them.</div>
+        <div class="progress-bar"><div class="progress-fill" style="width:30%;background:var(--warn)"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-dim);margin-top:6px"><span>Adoption</span><span>3%</span></div>
+      </div>
+
+      <div class="card warning reveal">
+        <div class="card-header"><span class="card-tag warning">Warning</span><span class="card-impact">Executive / Board</span></div>
+        <div class="card-title" data-finding="dash-exec-title">Executive Dashboards Lack Unit Economics</div>
+        <div class="card-desc" data-finding="dash-exec-desc">Goals to Actuals dashboard exists but doesn't include ARR waterfall, CAC, LTV, or NRR metrics. Master Pipeline Dashboard was accessed recently but shows aggregate pipeline without segment breakdown.</div>
+        <div class="progress-bar"><div class="progress-fill" style="width:35%;background:var(--warn)"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-dim);margin-top:6px"><span>Completeness</span><span>35%</span></div>
+      </div>
+
+      <div class="card pass reveal">
+        <div class="card-header"><span class="card-tag pass">Passing</span><span class="card-impact">Pipeline Generation</span></div>
+        <div class="card-title" data-finding="dash-pipe-title">Pipeline Generation Dashboard Exists</div>
+        <div class="card-desc" data-finding="dash-pipe-desc">Pipeline Generation Dashboard exists in the Jumpstart Demo Dashboards folder with supporting data from attribution fields (First/Last Touch Campaigns, UTM tracking). Source attribution infrastructure is in place.</div>
+        <div class="progress-bar"><div class="progress-fill" style="width:70%;background:var(--accent)"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-dim);margin-top:6px"><span>Completeness</span><span>70%</span></div>
+      </div>
+
+      <div class="card critical reveal" onclick="openModal('critical','Pipeline Health Dashboard Missing Despite Having the Data','Deal_Alerts__c formula, Stalled_Deal__c formula, Days_Since_Last_Activity__c, and full stage history tracking via scaleMatters all exist. But no dashboard surfaces this data.','<h4>What Exists (and Nobody Sees)</h4><ul><li>Deal_Alerts__c formula field</li><li>Stalled_Deal__c formula field</li><li>Days_Since_Last_Activity__c</li><li>scaleMatters stage dates and values (S1-S10)</li><li>Opportunity_Snapshot__c object</li><li>Days_Inactive__c on Opportunity</li><li>Client_Sentiment__c and Client_Sentiment_Score__c</li></ul><h4>The Irony</h4><p>This is the highest-ROI dashboard build in the entire audit. All the data exists. Zero new fields needed. Zero automation work required. Someone built the engine and forgot to install the dashboard.</p><h4>Build Effort</h4><p>4-6 hours for a comprehensive pipeline health dashboard using existing fields. Immediate value.</p>')">
+        <div class="card-header"><span class="card-tag critical">Critical</span><span class="card-impact">Highest ROI Fix</span></div>
+        <div class="card-title" data-finding="dash-health-title">Pipeline Health Dashboard Missing Despite Having the Data</div>
+        <div class="card-desc" data-finding="dash-health-desc">Deal_Alerts__c formula, Stalled_Deal__c formula, Days_Since_Last_Activity__c, and full stage history tracking via scaleMatters all exist. But no dashboard surfaces this data. You built the engine and forgot to install a dashboard.</div>
+        <div class="card-expand">View deep-dive &#8594;</div>
+      </div>
+
+      <div class="card warning reveal">
+        <div class="card-header"><span class="card-tag warning">Warning</span><span class="card-impact">Marketing Performance</span></div>
+        <div class="card-title" data-finding="dash-mktg-title">Marketing Dashboard Is Basic</div>
+        <div class="card-desc" data-finding="dash-mktg-desc">Marketing Dashboard, ICP dashboard, and Target Account Activation dashboard exist. Campaign has ROI formula, CPL, CPO, attribution fields. But no closed-loop campaign ROI dashboard connecting marketing spend to revenue.</div>
+        <div class="progress-bar"><div class="progress-fill" style="width:40%;background:var(--warn)"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-dim);margin-top:6px"><span>Completeness</span><span>40%</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 05 KPIs -->
+<section id="kpis">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-number">05</span><h2 class="section-title">GTM KPI Measurability</h2>
+      <div class="section-grade grade-c"><span class="grade-letter">C</span>
+        <div class="grade-tooltip">
+          <div class="gt-row"><span class="gt-label"><span class="gt-dot" style="background:var(--accent)"></span>Measurable</span><span class="gt-val" style="color:var(--accent)">6</span></div>
+          <div class="gt-row"><span class="gt-label"><span class="gt-dot" style="background:var(--warn)"></span>Partial</span><span class="gt-val" style="color:var(--warn)">4</span></div>
+          <div class="gt-row"><span class="gt-label"><span class="gt-dot" style="background:var(--danger)"></span>Not Measurable</span><span class="gt-val" style="color:var(--danger)">1</span></div>
+          <div style="border-top:1px solid var(--border);margin-top:8px;padding-top:8px;font-size:12px;color:var(--text-dim)">Weight: 5% of total score. Score: 62. Core subscription metrics are measurable. Unit economics and quota attainment are the gaps.</div>
+        </div>
+      </div>
+    </div>
+
+    <p class="section-desc reveal"><span id="kpiDesc">These are the metrics that drive board conversations, investor updates, and go-to-market strategy.</span> SaaScend's org can measure 6 of 11 core KPIs natively — significantly better than most orgs at this stage. The gaps are in unit economics and formal quota management.</p>
+
+    <div class="kpi-filters reveal">
+      <button class="kpi-filter-btn active" onclick="filterKPI('all')">All Teams</button>
+      <button class="kpi-filter-btn" onclick="filterKPI('sales')">Sales</button>
+      <button class="kpi-filter-btn" onclick="filterKPI('marketing')">Marketing</button>
+      <button class="kpi-filter-btn" onclick="filterKPI('cs')">Customer Success</button>
+      <button class="kpi-filter-btn" onclick="filterKPI('revops')">RevOps</button>
+    </div>
+
+    <table class="findings-table reveal" id="kpiTable">
+      <thead><tr><th>KPI</th><th>Measurable?</th><th>Teams</th><th>Fields / Notes</th></tr></thead>
+      <tbody>
+        <tr data-teams="revops,sales"><td>ARR (Annual Recurring Revenue)</td><td><span class="status-pill green">Yes</span></td><td><span class="team-tag revops">RevOps</span><span class="team-tag sales">Sales</span></td><td>ARR__c, Total_ARR__c roll-up summary</td></tr>
+        <tr data-teams="revops,cs"><td>NRR (Net Revenue Retention)</td><td><span class="status-pill green">Yes</span></td><td><span class="team-tag revops">RevOps</span><span class="team-tag cs">CS</span></td><td>NRR__c, Total_NRR__c roll-up summary</td></tr>
+        <tr data-teams="revops,sales"><td>MRR (Monthly Recurring Revenue)</td><td><span class="status-pill green">Yes</span></td><td><span class="team-tag revops">RevOps</span><span class="team-tag sales">Sales</span></td><td>MRR__c, Total_MRR__c roll-up summary</td></tr>
+        <tr data-teams="sales,revops"><td>Sales Cycle Length</td><td><span class="status-pill green">Yes</span></td><td><span class="team-tag sales">Sales</span><span class="team-tag revops">RevOps</span></td><td>Time_to_Close__c formula field</td></tr>
+        <tr data-teams="sales"><td>Win Rate</td><td><span class="status-pill green">Yes</span></td><td><span class="team-tag sales">Sales</span></td><td>Won/Lost counts by stage (1,644 Won / 1,317 Lost)</td></tr>
+        <tr data-teams="marketing,sales"><td>Lead Conversion</td><td><span class="status-pill green">Yes</span></td><td><span class="team-tag marketing">Mktg</span><span class="team-tag sales">Sales</span></td><td>Lifecycle_Stage__c tracking on Contact</td></tr>
+        <tr data-teams="revops,marketing"><td>CAC (Customer Acquisition Cost)</td><td><span class="status-pill yellow">Partial</span></td><td><span class="team-tag revops">RevOps</span><span class="team-tag marketing">Mktg</span></td><td>Attribution exists, no marketing spend field</td></tr>
+        <tr data-teams="revops,sales"><td>LTV (Lifetime Value)</td><td><span class="status-pill yellow">Partial</span></td><td><span class="team-tag revops">RevOps</span><span class="team-tag sales">Sales</span></td><td>ARR exists, Churn tracking exists, no formal calculation</td></tr>
+        <tr data-teams="sales,revops"><td>Pipeline Velocity</td><td><span class="status-pill yellow">Partial</span></td><td><span class="team-tag sales">Sales</span><span class="team-tag revops">RevOps</span></td><td>Stage dates exist (scaleMatters), no velocity formula</td></tr>
+        <tr data-teams="sales,revops"><td>Quota Attainment</td><td><span class="status-pill red">No</span></td><td><span class="team-tag sales">Sales</span><span class="team-tag revops">RevOps</span></td><td>Target__c exists but no quota-to-attainment linkage</td></tr>
+        <tr data-teams="cs"><td>Customer Health</td><td><span class="status-pill yellow">Partial</span></td><td><span class="team-tag cs">CS</span></td><td>Client_Health__c, CSAT__c exist, no product usage</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- 06 CLOUD COVERAGE -->
+<section id="clouds" style="background:var(--surface)">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="section-number">06</span><h2 class="section-title">Cloud Coverage</h2>
+      <div class="section-grade grade-b"><span class="grade-letter">B</span>
+        <div class="grade-tooltip">
+          <div class="gt-row"><span class="gt-label"><span class="gt-dot" style="background:var(--danger)"></span>Critical</span><span class="gt-val" style="color:var(--danger)">0</span></div>
+          <div class="gt-row"><span class="gt-label"><span class="gt-dot" style="background:var(--warn)"></span>Warning</span><span class="gt-val" style="color:var(--warn)">1</span></div>
+          <div class="gt-row"><span class="gt-label"><span class="gt-dot" style="background:var(--info)"></span>Recommendation</span><span class="gt-val" style="color:var(--info)">1</span></div>
+          <div class="gt-row"><span class="gt-label"><span class="gt-dot" style="background:var(--accent)"></span>Passing</span><span class="gt-val" style="color:var(--accent)">7</span></div>
+          <div style="border-top:1px solid var(--border);margin-top:8px;padding-top:8px;font-size:12px;color:var(--text-dim)">Weight: 10% of total score. Score: 81. Broad cloud footprint. Sales Cloud maxed at 30/30 licenses. Einstein/Agentforce severely underutilised (4/602).</div>
+        </div>
+      </div>
+    </div>
+
+    <p class="section-desc reveal"><span id="cloudDesc">SaaScend has an impressively broad cloud footprint for a 5-person sales team.</span> 9 clouds active, including Sales Planning and DevOps Center. The concern is utilisation depth — Sales Cloud is maxed at 30/30 licenses and Einstein/Agentforce has 4 of 602 licenses in use.</p>
+
+    <div class="enrichment-bar reveal">
+      <div class="enrich-item"><span class="enrich-label">Company</span><span class="enrich-value">SaaScend</span></div>
+      <div class="enrich-item"><span class="enrich-label">Industry</span><span class="enrich-value">Consulting</span></div>
+      <div class="enrich-item"><span class="enrich-label">Est. Revenue</span><span class="enrich-value">$10M</span></div>
+      <div class="enrich-item"><span class="enrich-label">Sales Team</span><span class="enrich-value">5 reps</span></div>
+      <div class="enrich-item"><span class="enrich-label">Avg Deal Size</span><span class="enrich-value">$50K</span></div>
+    </div>
+
+    <h3 style="font-size:16px;margin-bottom:12px;color:var(--accent)" class="reveal">Active Clouds</h3>
+    <div class="cloud-grid reveal">
+      <div class="cloud-item active"><div class="cloud-name">Sales Cloud</div><div class="cloud-status">30/30 Licenses &#8212; MAXED</div></div>
+      <div class="cloud-item active"><div class="cloud-name">Pardot / MCAE</div><div class="cloud-status">Active</div></div>
+      <div class="cloud-item active"><div class="cloud-name">Salesforce Maps</div><div class="cloud-status">Active</div></div>
+      <div class="cloud-item active"><div class="cloud-name">Slack Integration</div><div class="cloud-status">Active</div></div>
+      <div class="cloud-item active"><div class="cloud-name">Sales Planning</div><div class="cloud-status">Active (sfsp__)</div></div>
+      <div class="cloud-item active"><div class="cloud-name">Experience Cloud</div><div class="cloud-status">Community Sites</div></div>
+      <div class="cloud-item active"><div class="cloud-name">Einstein / Agentforce</div><div class="cloud-status">4/602 Licenses &#8212; Underutilised</div></div>
+      <div class="cloud-item active"><div class="cloud-name">DevOps Center</div><div class="cloud-status">Active</div></div>
+      <div class="cloud-item active"><div class="cloud-name">Trailhead</div><div class="cloud-status">Active</div></div>
+    </div>
+
+    <h3 style="font-size:16px;margin:24px 0 12px;color:var(--warn)" class="reveal">Recommended Additions</h3>
+    <div class="cloud-grid reveal">
+      <div class="cloud-item recommended" onclick="openModal('warn','Data Cloud','Multiple external data sources need unification.','<h4>Why Data Cloud</h4><p>SaaScend has data flowing from HubSpot, Pardot, Stripe, ZoomInfo, Clearbit, Avoma, Tray.io, and Groove. Data Cloud would unify these into a single customer profile enabling scoring, segmentation, and AI-powered next-best-action.</p><h4>Estimated Impact</h4><p>Unified customer 360, AI-ready data foundation, real-time segment activation across all connected platforms.</p>')"><div class="cloud-name">Data Cloud</div><div class="cloud-status">Recommended &#8212; Unify data sources</div></div>
+      <div class="cloud-item recommended" onclick="openModal('warn','Revenue Cloud / CPQ','For quoting and contract management.','<h4>Why Revenue Cloud</h4><p>SaaScend manages consulting engagements with variable pricing, SOWs, and contract terms. Revenue Cloud / CPQ would standardise quoting, automate contract generation, and feed subscription data directly into ARR/MRR calculations.</p><h4>Estimated Impact</h4><p>Faster quote generation, standardised pricing, automated contract lifecycle, improved revenue recognition.</p>')"><div class="cloud-name">Revenue Cloud / CPQ</div><div class="cloud-status">Recommended &#8212; Quoting &amp; contracts</div></div>
+      <div class="cloud-item recommended" onclick="openModal('warn','Tableau CRM','Analytics Cloud Integration licenses exist but unused.','<h4>Why Tableau CRM</h4><p>Analytics Cloud Integration licenses already exist in the org but are not being used. Activating Tableau CRM would provide advanced analytics capabilities beyond standard dashboards — AI-powered insights, predictive scoring, and cross-object analysis.</p><h4>Estimated Impact</h4><p>No incremental licensing cost (licenses exist). Advanced analytics on existing data. Predictive deal scoring using scaleMatters stage history.</p>')"><div class="cloud-name">Tableau CRM</div><div class="cloud-status">Recommended &#8212; Licenses exist, unused</div></div>
+    </div>
+
+    <h3 style="font-size:16px;margin:24px 0 12px;color:var(--text-dim)" class="reveal">Inactive / Not Deployed</h3>
+    <div class="cloud-grid reveal">
+      <div class="cloud-item inactive"><div class="cloud-name">Service Cloud</div><div class="cloud-status">Barebones &#8212; 1,427 cases, no SLA</div></div>
+    </div>
+
+    <div style="margin-top:40px" class="reveal">
+      <h3 style="font-size:20px;margin-bottom:4px">Investment Impact Mapping</h3>
+      <p style="font-size:14px;color:var(--text-dim);margin-bottom:20px">How each finding ties back to the cloud investment story</p>
+      <div class="card-grid" style="grid-template-columns:repeat(auto-fill,minmax(260px,1fr))">
+        <div class="card info"><div class="card-title">Einstein / Agentforce</div><div class="card-desc">4 of 602 licenses in use. Massive untapped potential for AI-powered deal scoring, email generation, and pipeline insights using existing scaleMatters data.</div></div>
+        <div class="card info"><div class="card-title">Sales Cloud Capacity</div><div class="card-desc">30/30 licenses maxed. Before adding headcount or extending to client-facing teams, license capacity needs to be addressed.</div></div>
+        <div class="card info"><div class="card-title">Service Cloud Maturity</div><div class="card-desc">1,427 cases exist but no SLA tracking, no entitlements, no CSAT automation. If client support scales, this needs investment.</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 07 ROI CALCULATOR -->
+<section id="roi">
+  <div class="container">
+    <div class="section-header reveal"><span class="section-number">07</span><h2 class="section-title">ROI Calculator</h2></div>
+
+    <div class="impact-cards reveal">
+      <div class="impact-card"><div class="ic-icon">&#128176;</div><div class="ic-value" id="impactLeak">$680K</div><div class="ic-label">Pipeline Leakage (Partial Routing)</div></div>
+      <div class="impact-card"><div class="ic-icon">&#128200;</div><div class="ic-value">$750K</div><div class="ic-label">Forecast Inaccuracy Cost</div></div>
+      <div class="impact-card"><div class="ic-icon">&#128337;</div><div class="ic-value">$54K</div><div class="ic-label">Rep Productivity Loss</div></div>
+      <div class="impact-card"><div class="ic-icon">&#128680;</div><div class="ic-value">$500K</div><div class="ic-label">Preventable Churn</div></div>
+    </div>
+
+    <div class="roi-section reveal">
+      <h3 style="font-size:22px;margin-bottom:8px" id="roiHeadline">The Real Cost of Inaction</h3>
+      <p style="color:var(--text-muted);margin-bottom:24px;max-width:600px" id="roiSub">Adjust the sliders to match your business. Every cost model is sourced from industry research and calibrated to SaaScend's actual org data.</p>
+
+      <div class="slider-group"><label>Annual Revenue <span id="revLabel">$10,000,000</span></label><input type="range" id="revSlider" min="1000000" max="50000000" step="500000" value="10000000"></div>
+      <div class="slider-group"><label>Sales Team Size <span id="teamLabel">5</span></label><input type="range" id="teamSlider" min="3" max="100" step="1" value="5"></div>
+      <div class="slider-group"><label>Average Deal Size <span id="dealLabel">$50,000</span></label><input type="range" id="dealSlider" min="5000" max="500000" step="5000" value="50000"></div>
+
+      <div class="roi-grid">
+        <div class="roi-col cost-fix">
+          <h3><div class="dot"></div> Cost of Fixing (SaaScend Tier 5)</h3>
+          <div class="roi-row"><span class="roi-label">Data Architecture Cleanup</span><span class="roi-value" style="color:var(--accent)">$4,800</span></div>
+          <div class="roi-row"><span class="roi-label">Automation Consolidation</span><span class="roi-value" style="color:var(--accent)">$12,000</span></div>
+          <div class="roi-row"><span class="roi-label">Integration Rationalisation</span><span class="roi-value" style="color:var(--accent)">$3,600</span></div>
+          <div class="roi-row"><span class="roi-label">Dashboard &amp; Reporting Build</span><span class="roi-value" style="color:var(--accent)">$7,200</span></div>
+          <div class="roi-row"><span class="roi-label">Cloud Optimisation</span><span class="roi-value" style="color:var(--accent)">$8,400</span></div>
+          <div class="roi-total fix"><span class="label">Total Investment</span><span class="amount">$36,000</span></div>
+        </div>
+        <div class="roi-col cost-ignore">
+          <h3><div class="dot"></div> Cost of Not Fixing (12 Months)</h3>
+          <div class="roi-row"><span class="roi-label">Pipeline Leakage (Partial Routing)</span><span class="roi-value cost-val" id="costRouting" style="color:var(--danger)">$680,000</span></div>
+          <div class="roi-row"><span class="roi-label">Forecast Inaccuracy</span><span class="roi-value cost-val" id="costForecast" style="color:var(--danger)">$750,000</span></div>
+          <div class="roi-row"><span class="roi-label">Rep Productivity Loss</span><span class="roi-value cost-val" id="costRep" style="color:var(--danger)">$54,000</span></div>
+          <div class="roi-row"><span class="roi-label">Preventable Churn</span><span class="roi-value cost-val" id="costChurn" style="color:var(--danger)">$500,000</span></div>
+          <div class="roi-row"><span class="roi-label">Manual Ops Overhead</span><span class="roi-value cost-val" id="costOps" style="color:var(--danger)">$23,888</span></div>
+          <div class="roi-total ignore"><span class="label">Total Cost of Inaction</span><span class="amount" id="totalCostIgnore">$2,007,888</span></div>
+        </div>
+      </div>
+
+      <div style="text-align:center;margin-top:40px;padding:32px;background:var(--bg);border-radius:var(--radius);border:1px solid var(--border)">
+        <div style="font-size:14px;color:var(--text-muted);margin-bottom:8px">Estimated Return on Investment</div>
+        <div style="font-family:var(--mono);font-size:56px;font-weight:700;color:var(--accent)" id="roiMultiple">55.8x</div>
+        <div style="font-size:16px;color:var(--text-muted);margin-top:8px">For every <strong style="color:var(--text);font-size:20px">$1</strong> invested with SaaScend, you recover an estimated <strong style="color:var(--accent);font-size:20px" id="roiDollar">$55.80</strong> in prevented losses</div>
+      </div>
+    </div>
+
+    <div class="inline-cta reveal">
+      <p><strong>The cost of inaction compounds every quarter.</strong> Pipeline leakage alone is estimated at <span id="ctaPipeline" style="color:var(--danger);font-weight:700">$680K/yr</span> — and that's with routing infrastructure that partially exists.</p>
+      <a href="mailto:craig@saascend.co?subject=Audit%20Follow-Up%20%E2%80%94%20SaaScend">Talk to SaaScend &#8594;</a>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="container">
+    <h2 class="cta-title reveal" id="ctaTitle">Ready to fix this?</h2>
+    <p class="cta-sub reveal" id="ctaSub">Your dedicated SaaScend team can start remediating these findings within 48 hours of kickoff. No long SOWs. No endless discovery. Just results.</p>
+    <a href="mailto:craig@saascend.co?subject=Audit%20Follow-Up%20%E2%80%94%20SaaScend" class="cta-btn reveal" id="ctaBtn">Book Your Jumpstart <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a>
+    <div class="client-logos reveal">
+      <span>TRUSTED BY COMPANIES LIKE YOURS</span>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <p>This audit was generated by SaaScend Audit Engine</p>
+    <p style="margin-top:8px">Report generated March 22, 2026 for <strong>SaaScend</strong> (Self-Audit) &#8212; Confidential</p>
+    <p style="margin-top:12px"><a href="https://saascend.co">saascend.co</a></p>
+  </div>
+</footer>
+
+<script>
+
+// MODAL
+function openModal(severity, title, summary, detail) {
+  const sev = {critical:'Critical',warning:'Warning',info:'Info',warn:'Warning',pass:'Passing'};
+  const cls = {critical:'critical',warning:'warning',info:'info',warn:'warning',pass:'pass'};
+  document.getElementById('modalTag').innerHTML = '<span class="card-tag '+(cls[severity]||'info')+'">'+(sev[severity]||severity)+'</span>';
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalBody').innerHTML = '<p style="margin-bottom:16px">'+summary+'</p>'+detail;
+  document.getElementById('modalOverlay').classList.add('open');
+}
+function closeModal(){document.getElementById('modalOverlay').classList.remove('open')}
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeModal()});
+
+// KPI FILTER
+function filterKPI(team){
+  document.querySelectorAll('.kpi-filter-btn').forEach(function(b){b.classList.toggle('active',b.textContent.toLowerCase().includes(team==='all'?'all':team))});
+  document.querySelectorAll('#kpiTable tbody tr').forEach(function(r){r.style.display=team==='all'||r.dataset.teams.includes(team)?'':'none'});
+}
+
+// SCROLL REVEAL
+var observer=new IntersectionObserver(function(e){e.forEach(function(x){if(x.isIntersecting)x.target.classList.add('visible')})},{threshold:.1});
+document.querySelectorAll('.reveal').forEach(function(el){observer.observe(el)});
+
+// NAV
+var navItems=document.querySelectorAll('.nav-item'),sects=document.querySelectorAll('section[id]');
+window.addEventListener('scroll',function(){var c='';sects.forEach(function(s){if(window.scrollY>=s.offsetTop-160)c=s.id});navItems.forEach(function(n){n.classList.remove('active');if(n.getAttribute('href')==='#'+c)n.classList.add('active')})});
+
+// ROI CALCULATOR
+var revSlider=document.getElementById('revSlider'),teamSlider=document.getElementById('teamSlider'),dealSlider=document.getElementById('dealSlider');
+function fmt(n){return '$'+Math.round(n).toLocaleString()}
+function calcROI(){
+  var rev=+revSlider.value,team=+teamSlider.value;
+  document.getElementById('revLabel').textContent=fmt(rev);
+  document.getElementById('teamLabel').textContent=team;
+  document.getElementById('dealLabel').textContent=fmt(+dealSlider.value);
+  var routing=rev*.068,forecast=rev*.075,repLoss=team*10800,churn=rev*.05,opsTotal=team*13650*.35;
+  document.getElementById('costRouting').textContent=fmt(routing);
+  document.getElementById('costForecast').textContent=fmt(forecast);
+  document.getElementById('costRep').textContent=fmt(repLoss);
+  document.getElementById('costChurn').textContent=fmt(churn);
+  document.getElementById('costOps').textContent=fmt(opsTotal);
+  var total=routing+forecast+repLoss+churn+opsTotal;
+  document.getElementById('totalCostIgnore').textContent=fmt(total);
+  var roi=total/36000;
+  document.getElementById('roiMultiple').textContent=roi.toFixed(1)+'x';
+  document.getElementById('roiDollar').textContent='$'+roi.toFixed(2);
+  document.getElementById('heroAmount').textContent=fmt(total);
+  document.getElementById('impactLeak').textContent=fmt(routing);
+  document.getElementById('ctaPipeline').textContent=fmt(routing)+'/yr';
+}
+[revSlider,teamSlider,dealSlider].forEach(function(s){s.addEventListener('input',calcROI)});
+calcROI();
+
+// =========================================
+//  PERSONA ENGINE - 6 COMPLETE PERSONAS
+// =========================================
+
+var P = {
+
+// 1. THE OPERATOR
+operator: {
+  fonts: ['DM Sans','Space Mono'],
+  badge: "Audit Report",
+  heroTitle: '54 out of 100.<br>Strong foundations,<br>but <span class="hl">buried in complexity</span>.',
+  heroSub: "697 metadata objects scanned across 6 audit dimensions. The core revenue fields exist, the stage tracking is solid, and the contact model is well-built. But 113 triggers, 217 flows, dual marketing platforms, and 69 unused dashboards are dragging the operation down.",
+  scoreLabel: "Org Health", metaCritLabel: "Critical Findings",
+  overviewDesc: "This audit evaluates SaaScend's Salesforce org against our proprietary RevOps benchmark -- 80+ operational capabilities mapped to exact metadata, Flows, Apex, and field configurations. The org has been invested in meaningfully. The issue is consolidation, not construction.",
+  dataDesc: "Data architecture has a solid core. Deal_Type__c exists, ARR/MRR/NRR are calculated via flow, and the Contact model is comprehensive. The issues are field bloat (1,021 fields across 4 objects), stage overlap, and a nearly empty Account hierarchy.",
+  autoDesc: "Automation infrastructure is substantial but ungoverned. ScaleMatters provides strong stage telemetry. Lead grading and routing pieces exist but aren't orchestrated. The 113 triggers + 217 flows create execution-order risk that needs immediate attention.",
+  intDesc: "Integration footprint is broad: HubSpot, Pardot, Stripe, ZoomInfo, Clearbit, Avoma, Groove, Tray.io, PandaDoc. The operational risk is running both HubSpot and Pardot simultaneously -- dual marketing platforms create data integrity and communication overlap issues.",
+  reportDesc: "69 dashboards exist across 20+ folders. Only 2 were accessed in the past week. The highest-impact finding: pipeline health data (Deal_Alerts__c, Stalled_Deal__c, Days_Since_Last_Activity__c) exists but no dashboard surfaces it.",
+  kpiDesc: "6 of 11 core GTM KPIs are measurable from Salesforce -- significantly above average. ARR, MRR, NRR, sales cycle, win rate, and lead conversion are all trackable. Gaps are in unit economics (CAC, LTV) and formal quota attainment.",
+  cloudDesc: "9 active clouds including Sales Planning and DevOps Center. Sales Cloud is maxed at 30/30 licenses. Einstein/Agentforce has 4 of 602 licenses in use -- massive underutilisation. Tableau CRM licenses exist but are unused.",
+  roiHeadline: "The Numbers, No Spin", roiSub: "Inputs are adjustable. The cost-to-fix reflects SaaScend Tier 5 engagement. The cost-of-inaction uses industry-standard benchmarks calibrated to SaaScend's actual org data.",
+  ctaTitle: "Here's the fix path.", ctaSub: "The priorities are clear: consolidate the trigger/flow landscape, unify marketing platforms, build the pipeline health dashboard, and activate Einstein licenses. Start with the highest-ROI items.", ctaBtn: "Start the Build &#8594;",
+  f: {
+    "dealtype-title": "Deal Type Field Exists",
+    "dealtype-desc": "Deal_Type__c picklist on Opportunity with DSE Type values. Revenue segmentation by deal motion is operational. Standardise values to New Business, Expansion, Renewal, Cross-Sell for cleaner reporting.",
+    "mrr-title": "MRR/ARR/NRR Fields Present and Auto-Calculated",
+    "mrr-desc": "Total_MRR__c, Total_ARR__c, Total_NRR__c roll-up summaries exist. Opp Products - Update ARR/MRR/NRR flow auto-calculates. Subscription economics are system-derived. Strong foundation.",
+    "fields-title": "1,021 Custom Fields Across Core Objects",
+    "fields-desc": "Lead: 237, Account: 209, Contact: 258, Opportunity: 317. Managed packages account for ~60% (scaleMatters, Groove, ZoomInfo, Clearbit, Pardot). Remaining org-created fields include duplicates. Field utilisation audit needed.",
+    "stages-title": "Opportunity Stages Have Legacy Overlap",
+    "stages-desc": "9 stages including both 'Proposal' and 'Proposal/Price Quote'. No validation rules enforce exit criteria. 100 open opps distributed: Qualified (58), Proposal (29), Contract Sent (8), Negotiation/Review (2). Consolidation needed.",
+    "hierarchy-title": "Account Hierarchy at 1% Population",
+    "hierarchy-desc": "ParentId exists but only 134 of 12,600 accounts have it populated. For a consulting firm managing multi-entity client relationships, this is a missed operational capability. Bulk populate from existing enrichment data.",
+    "contact-title": "Contact Model Is Well-Instrumented",
+    "contact-desc": "309 fields with Lifecycle_Stage__c, attribution (First/Last Touch Campaign, UTMs), activity rollups (Total Pipeline, Close Rate, Days Since Last Deal). Record Types: Client, Partner, Prospect. Best object in the org.",
+    "routing-title": "Lead Routing Infrastructure Exists but Is Fragmented",
+    "routing-desc": "Round_Robin_Number__c, Round_Robin_Name__c formulas, LEAD - Root Domain to Account Matching flow, LEAD - GRADING flow. The pieces exist but aren't orchestrated into a single routing engine. No formal Assignment Rule active.",
+    "stage-auto-title": "Stage Progression Tracked via scaleMatters",
+    "stage-auto-desc": "S1-S10 date stamps, prior stage tracking, stage value history, Opportunity_Snapshot__c, Deal_Alerts__c formula, Stalled_Deal__c formula. Pipeline telemetry is solid. The issue is nobody's looking at the data.",
+    "forecast-title": "Forecasting Infrastructure Is Partial",
+    "forecast-desc": "Revenue_Forecast__c, Probability_Forecast__c, forecast category mapping flow, Target__c object, Goals to Actuals dashboard. But no Collaborative Forecasting enabled and no formal quota-to-attainment linkage.",
+    "conflict-title": "113 Triggers + 217 Flows: Governance Risk",
+    "conflict-desc": "113 active Apex triggers (11+ managed packages), 217 flows (75 record-triggered), 14 legacy Process Builders. Execution order is non-deterministic. This is the highest-priority technical debt item in the org.",
+    "redundancy-title": "Dual Marketing Platforms: HubSpot + Pardot",
+    "redundancy-desc": "HubSpot connected app (created 2021) alongside Pardot. Lead has both pi__ (Pardot) and HubSpot scoring fields. UTM tracking duplicated. Choose one platform, migrate, decommission the other.",
+    "product-title": "No Product Usage Integration (Expected for Consulting)",
+    "product-desc": "As a consulting firm, product telemetry isn't relevant. Client engagement is tracked via Project__c, CSAT__c, Interaction__c, and Website_Touches__c. Avoma integration provides call intelligence. Model-appropriate.",
+    "dash-mgr-title": "69 Dashboards, 2 Actually Used",
+    "dash-mgr-desc": "Pipeline Review has 3 versions (v1, duplicate, v2). Most dashboards across 20+ folders have null LastReferencedDate. Only 'Accounts Receivable v2' and 'Master Pipeline Dashboard' accessed recently (2026-03-20).",
+    "dash-exec-title": "Executive Dashboards Missing Unit Economics",
+    "dash-exec-desc": "Goals to Actuals dashboard exists but lacks ARR waterfall, CAC, LTV, NRR. Master Pipeline Dashboard shows aggregate pipeline without segment breakdown. Fields exist to build these -- they just haven't been built.",
+    "dash-pipe-title": "Pipeline Generation Dashboard Exists",
+    "dash-pipe-desc": "Jumpstart Demo Dashboards folder contains Pipeline Generation with First/Last Touch Campaign attribution. Source attribution infrastructure is in place. This is working.",
+    "dash-health-title": "Pipeline Health Data Exists, Dashboard Doesn't",
+    "dash-health-desc": "Deal_Alerts__c, Stalled_Deal__c, Days_Since_Last_Activity__c, scaleMatters stage dates, Opportunity_Snapshot__c -- all exist. No dashboard surfaces this data. Highest-ROI build: 4-6 hours, zero new fields.",
+    "dash-mktg-title": "Marketing Dashboard Lacks Closed-Loop Attribution",
+    "dash-mktg-desc": "Marketing Dashboard, ICP dashboard, Target Account Activation exist. Campaign has ROI formula, CPL, CPO. Missing: closed-loop campaign ROI connecting marketing spend to closed revenue."
+  }
+},
+
+// 2. THE CLOSER
+closer: {
+  fonts: ['Sora','Sora'],
+  badge: "Revenue Impact Assessment",
+  heroTitle: 'You\'re leaving<br><span class="hl" id="heroAmount">$2M</span> per year<br>on the table.',
+  heroSub: "The infrastructure is there -- ARR tracking, stage telemetry, attribution. But your reps can't see pipeline health, your forecast isn't connected to quotas, and 69 dashboards exist that nobody opens. This report shows where the money is going.",
+  scoreLabel: "Revenue Readiness", metaCritLabel: "Revenue Blockers",
+  overviewDesc: "This assessment measures whether SaaScend's Salesforce org is helping or hindering the revenue team. We looked at 697 metadata objects across pipeline management, deal execution, forecasting, and customer retention. The foundations are strong -- the utilisation is not.",
+  dataDesc: "Your data model has the right fields -- Deal_Type__c, ARR/MRR/NRR, stage tracking. But 1,021 custom fields across four objects means reps are drowning in noise. The signal exists; the signal-to-noise ratio is terrible.",
+  autoDesc: "ScaleMatters gives you stage telemetry most companies would kill for. Deal alerts, stalled deal detection, snapshot tracking -- it's all there. The problem? Lead routing is fragmented, forecasting isn't connected, and 113 triggers make the whole thing fragile.",
+  intDesc: "You've got more integrations than most companies three times your size. The revenue question is simple: are you getting more pipeline from HubSpot or Pardot? Pick the winner, kill the loser, and stop splitting your prospect communication.",
+  reportDesc: "You have 69 dashboards and nobody uses them. Meanwhile, the most important data in your org -- deal health, stalled deals, pipeline velocity -- has no dashboard at all. The data exists. The visibility doesn't.",
+  kpiDesc: "You can measure ARR, MRR, NRR, win rate, sales cycle, and lead conversion directly from Salesforce. That puts you ahead of 80% of the companies we audit. The gaps -- CAC, LTV, quota attainment -- are the final mile.",
+  cloudDesc: "9 active clouds for a 5-person sales team is impressive cloud coverage. The revenue concern: Sales Cloud is maxed at 30/30, and Einstein has 598 unused licenses. That's AI-powered deal scoring sitting on the shelf.",
+  roiHeadline: "What This Is Costing You Right Now", roiSub: "These aren't projections -- they're based on your actual team size, revenue, and deal velocity. Move the sliders to stress test it.",
+  ctaTitle: "Stop leaving money on the table.", ctaSub: "The infrastructure exists. The data is being captured. You just need to wire it to dashboards, consolidate the routing, and start using the 598 Einstein licenses you're already paying for.", ctaBtn: "Get My Pipeline Dialled In &#8594;",
+  f: {
+    "dealtype-title": "Deal Segmentation Works",
+    "dealtype-desc": "Deal_Type__c exists with DSE Type values. You can actually tell your deals apart -- most companies we audit can't. Tighten the picklist values and enforce at creation for cleaner forecasting.",
+    "mrr-title": "Subscription Metrics Are System-Derived",
+    "mrr-desc": "ARR, MRR, NRR auto-calculated via flow. This is what best practice looks like. You're a consulting firm with better subscription economics tracking than most SaaS companies.",
+    "fields-title": "1,021 Fields. Reps See Noise, Not Signal.",
+    "fields-desc": "317 fields on Opportunity alone. Even with managed packages accounting for 60%, your reps are scrolling past hundreds of empty fields to find what matters. Clean the layouts, hide the noise, let reps sell.",
+    "stages-title": "Two Proposal Stages? Pick One.",
+    "stages-desc": "'Proposal' and 'Proposal/Price Quote' both exist. With 29 opps in Proposal and no validation rules, reps pick whichever they feel like. Your pipeline analysis is split across two stages that mean the same thing.",
+    "hierarchy-title": "Can't See Client Group Revenue",
+    "hierarchy-desc": "134 of 12,600 accounts have a parent. You can't roll up revenue by client group, can't spot multi-entity expansion opportunities, can't calculate true client lifetime value. For a consulting firm, this is a real miss.",
+    "contact-title": "Your Contact Model Is a Competitive Advantage",
+    "contact-desc": "Lifecycle tracking, attribution, activity rollups, deal performance -- all on Contact. Reps can see Total Pipeline, Close Rate, Days Since Last Deal for every contact. This is genuinely best-in-class.",
+    "routing-title": "Leads Get Graded but Not Routed Cleanly",
+    "routing-desc": "LEAD - GRADING flow scores leads. Round-robin formulas exist. Account matching runs. But there's no single orchestrated routing engine connecting it all. Leads fall through the cracks between fragmented automations.",
+    "stage-auto-title": "You Track Stage Movement Better Than Most",
+    "stage-auto-desc": "ScaleMatters captures S1-S10 dates, values, and prior stage. Deal_Alerts__c and Stalled_Deal__c formulas exist. You have a pipeline health engine that most companies pay six figures to build. Use it.",
+    "forecast-title": "Forecasting Exists but Isn't Connected",
+    "forecast-desc": "Revenue_Forecast__c maps to Forecast Category. Target__c object exists. Goals to Actuals dashboard exists. But Collaborative Forecasting isn't enabled and quotas aren't in the system. The forecast is 80% built and 0% functional.",
+    "conflict-title": "113 Triggers Make Your Data Unpredictable",
+    "conflict-desc": "When a rep updates a deal, 113 triggers and 75 record-triggered flows compete to run. The execution order is non-deterministic. Values change unexpectedly. Reps stop trusting the data. Deals fall through.",
+    "redundancy-title": "HubSpot and Pardot Both Talking to Prospects",
+    "redundancy-desc": "Two marketing platforms, one prospect database. Leads get scored in both systems. Emails go out from both. Nobody coordinated. You're over-communicating and confusing prospects. Pick one.",
+    "product-title": "Client Engagement Tracking Is In Place",
+    "product-desc": "Project__c, CSAT__c, Interaction__c track client health. Avoma captures call intelligence. For a consulting firm, this is the right model. No product telemetry needed.",
+    "dash-mgr-title": "69 Dashboards Nobody Opens",
+    "dash-mgr-desc": "Only 2 of 69 dashboards were accessed this week. Your managers have three versions of Pipeline Review to choose from. Nobody knows which is current. Dashboard sprawl without governance is worse than no dashboards.",
+    "dash-exec-title": "The Board Gets Pipeline Without Context",
+    "dash-exec-desc": "Goals to Actuals exists but doesn't show ARR waterfall by deal type, CAC, LTV, or NRR. The Master Pipeline Dashboard was accessed recently but only shows aggregate numbers. The ARR/MRR fields exist to build this -- just hasn't been done.",
+    "dash-pipe-title": "Pipeline Generation Attribution Works",
+    "dash-pipe-desc": "Pipeline Generation Dashboard leverages First/Last Touch Campaigns and UTM tracking. Attribution infrastructure is solid. This is working -- build on it.",
+    "dash-health-title": "Your Best Data Has No Dashboard",
+    "dash-health-desc": "Deal_Alerts__c, Stalled_Deal__c, Days_Since_Last_Activity__c, scaleMatters S1-S10 dates. It's all there. Zero of it is visible in a dashboard. Build this in 4 hours and immediately improve pipeline reviews.",
+    "dash-mktg-title": "Marketing Metrics Lack Revenue Connection",
+    "dash-mktg-desc": "ICP dashboard, Target Account Activation, CPL/CPO fields exist. But no dashboard connects marketing spend to closed revenue. Marketing can show activity. Marketing can't prove ROI."
+  }
+},
+
+// 3. THE STRATEGIST
+strategist: {
+  fonts: ['IBM Plex Sans','Playfair Display'],
+  badge: "Strategic Technology Assessment",
+  heroTitle: 'The investment is there.<br>The <span class="hl">utilisation</span><br>is not.',
+  heroSub: "SaaScend's Salesforce org has been meaningfully invested in -- 9 active clouds, subscription economics tracking, stage telemetry, attribution infrastructure. The strategic question is whether that investment is being leveraged to its full potential. This assessment says no.",
+  scoreLabel: "Growth Readiness", metaCritLabel: "Strategic Gaps",
+  overviewDesc: "This assessment evaluates whether SaaScend's technology foundation is being fully leveraged for the growth trajectory the company is pursuing. 697 metadata objects scanned. The infrastructure is above average. The utilisation is below potential.",
+  dataDesc: "The data model reflects intentional investment -- subscription metrics, deal segmentation, lifecycle tracking. The strategic concern is that 1,021 custom fields create operational friction, and the account hierarchy gap limits account-based growth strategies.",
+  autoDesc: "The automation investment is significant: scaleMatters for pipeline telemetry, custom grading flows, forecast mapping. The strategic risk is that 113 triggers and 217 flows create a fragile system where adding new capability risks breaking existing functionality.",
+  intDesc: "The integration ecosystem reflects a company that has invested in best-of-breed tools. The strategic question is consolidation: running dual marketing platforms divides resources and creates data integrity risk that undermines both platforms.",
+  reportDesc: "69 dashboards represent significant historical investment in reporting. The strategic gap is that this investment isn't being utilised -- only 2 dashboards accessed recently, and the highest-value data (pipeline health) has no visibility layer.",
+  kpiDesc: "6 of 11 core KPIs measurable puts SaaScend in the top quartile of orgs we assess. The remaining gaps -- unit economics and formal quota management -- are the metrics that differentiate operationally mature companies from growing ones.",
+  cloudDesc: "9 active clouds for a $10M consulting firm demonstrates platform commitment. The strategic opportunity is in utilisation depth: 598 unused Einstein licenses and existing Tableau CRM licenses represent unrealised AI and analytics capability.",
+  roiHeadline: "The Investment Case", roiSub: "The cost of remediation is a fraction of the technology investment already made. The question is whether you maximise return on the existing investment or let it depreciate through underutilisation.",
+  ctaTitle: "Maximise the investment you've already made.", ctaSub: "The infrastructure for a best-in-class revenue operation exists in your org today. The gap between where you are and where you could be is consolidation and activation, not construction.", ctaBtn: "Schedule a Strategy Session &#8594;",
+  f: {
+    "dealtype-title": "Revenue Segmentation Is Operational",
+    "dealtype-desc": "Deal_Type__c enables revenue segmentation by deal motion. This is a foundational capability that enables board-quality reporting on net-new versus expansion revenue. Standardise values for cleaner investor narratives.",
+    "mrr-title": "Subscription Economics Are System-Derived",
+    "mrr-desc": "Auto-calculated ARR, MRR, NRR from the system of record. This enables the unit economics reporting that boards and investors require. The foundation is strong -- build CAC and LTV on top of it.",
+    "fields-title": "Technical Debt Is Accumulating Silently",
+    "fields-desc": "1,021 fields across four objects. The managed package contribution is expected. The strategic concern is that accumulated field debt signals a pattern of building without maintaining -- which compounds as the organisation scales.",
+    "stages-title": "Pipeline Methodology Needs Governance",
+    "stages-desc": "Duplicate proposal stages and no validation rules mean pipeline value is directionally correct but not precise. For a company selling to enterprises, pipeline accuracy directly impacts hiring, investment, and capacity decisions.",
+    "hierarchy-title": "Account-Based Strategy Lacks Structure",
+    "hierarchy-desc": "1% hierarchy population means parent-level revenue analysis, client concentration risk assessment, and multi-entity growth strategies cannot be executed. For a consulting firm managing enterprise client relationships, this is a strategic gap.",
+    "contact-title": "Relationship Intelligence Is a Differentiator",
+    "contact-desc": "The contact model with lifecycle tracking, attribution, and performance rollups provides relationship intelligence that most organisations at this stage lack. This is a strategic asset worth protecting and extending.",
+    "routing-title": "Go-to-Market Speed Depends on Routing",
+    "routing-desc": "The components of a routing engine exist but aren't orchestrated. In a consulting firm where relationships drive revenue, speed-to-engagement with the right account executive is a competitive differentiator.",
+    "stage-auto-title": "Pipeline Telemetry Is a Strategic Asset",
+    "stage-auto-desc": "ScaleMatters stage tracking provides the pipeline intelligence infrastructure that AI-powered forecasting, deal scoring, and revenue intelligence tools require. This is future-ready infrastructure.",
+    "forecast-title": "Revenue Predictability Is 80% Built",
+    "forecast-desc": "Custom forecast fields, category mapping, targets object, Goals to Actuals dashboard. The infrastructure for revenue predictability exists but needs to be connected to native Collaborative Forecasting for it to be truly operational.",
+    "conflict-title": "Platform Stability Is at Risk",
+    "conflict-desc": "113 triggers and 217 flows create a system where adding new capability risks destabilising existing functionality. This limits the organisation's ability to iterate on its revenue technology stack.",
+    "redundancy-title": "Tool Consolidation Enables Platform Strategy",
+    "redundancy-desc": "Dual marketing platforms divide investment, resources, and data quality. Consolidating to one platform (likely Pardot for a Salesforce consulting firm) enables a deeper, more integrated go-to-market motion.",
+    "product-title": "Client Engagement Model Is Appropriate",
+    "product-desc": "Project tracking, CSAT, and interaction logging provide the client health signals a consulting firm needs. The model is appropriate for the business. Strengthen scoring using Avoma call intelligence data.",
+    "dash-mgr-title": "Reporting Investment Isn't Being Leveraged",
+    "dash-mgr-desc": "69 dashboards represent significant investment in reporting capability. 3% utilisation means that investment is being wasted. The strategic priority is curation, not creation -- retire what isn't used, highlight what matters.",
+    "dash-exec-title": "Executive Visibility Has Gaps in Unit Economics",
+    "dash-exec-desc": "Goals to Actuals provides basic performance visibility. The gap is in the metrics that define company trajectory -- ARR waterfall, CAC payback, NRR trending. The data exists to build these. The dashboards don't.",
+    "dash-pipe-title": "Attribution Infrastructure Is in Place",
+    "dash-pipe-desc": "Pipeline generation attribution with First/Last Touch and UTM tracking represents marketing-to-revenue visibility that many organisations cannot achieve. This is working and should be protected.",
+    "dash-health-title": "Highest-Impact Dashboard Isn't Built",
+    "dash-health-desc": "Pipeline health telemetry exists (deal alerts, stall detection, activity tracking) but has no visibility layer. This is the single highest-ROI investment in this entire assessment -- 4-6 hours to transform pipeline reviews.",
+    "dash-mktg-title": "Marketing ROI Requires Revenue Attribution",
+    "dash-mktg-desc": "Marketing has activity dashboards but no closed-loop revenue attribution. Investment decisions should be data-driven. The attribution infrastructure exists -- it needs to be connected to revenue outcomes."
+  }
+},
+
+// 4. THE GUARDIAN
+guardian: {
+  fonts: ['IBM Plex Sans','IBM Plex Sans'],
+  badge: "Operational Risk Assessment",
+  heroTitle: 'Your revenue data<br>has <span class="hl" id="heroAmount">$2M</span> in<br>uncontrolled exposure.',
+  heroSub: "We assessed SaaScend's Salesforce org for operational risk, data integrity gaps, and governance exposure. 113 uncoordinated triggers are the highest-severity finding. Dual marketing platforms and maxed Sales Cloud licenses compound the risk.",
+  scoreLabel: "Risk Score", metaCritLabel: "High-Risk Findings",
+  overviewDesc: "This assessment identifies operational risk, data integrity gaps, and governance exposure across SaaScend's Salesforce environment. The org has strong data foundations but critical governance gaps in automation, integration, and license management.",
+  dataDesc: "Core revenue fields exist and are auto-calculated, reducing manual entry risk. The governance concerns are field proliferation (1,021 fields without a documented ownership model), stage overlap without validation, and a nearly empty account hierarchy.",
+  autoDesc: "The automation landscape is the highest-risk area. 113 Apex triggers from 11+ managed packages and 217 flows create non-deterministic execution order. Any change to a core object could trigger unpredictable cascading effects.",
+  intDesc: "Dual marketing platforms (HubSpot + Pardot) represent both a data integrity risk and an unnecessary licensing cost. Prospect records exist in two systems with no single source of truth for marketing engagement.",
+  reportDesc: "69 dashboards with 3% utilisation represent ungoverned information sprawl. Multiple versions of the same dashboard create confusion about which data is authoritative. Pipeline health data exists but has no visibility -- a risk management gap.",
+  kpiDesc: "The ability to measure 6 of 11 KPIs natively reduces the risk of manual reporting errors. The remaining gaps in unit economics (CAC, LTV) mean board-level metrics still require manual calculation, introducing potential inaccuracy.",
+  cloudDesc: "Sales Cloud at 30/30 licenses is a capacity risk -- any headcount addition requires immediate license procurement. Einstein at 4/602 utilisation represents wasted licensing spend. Service Cloud has 1,427 cases with no SLA governance.",
+  roiHeadline: "Exposure Analysis", roiSub: "Every line item represents a quantifiable risk to revenue, operational efficiency, or data integrity. The remediation cost is fixed. The risk exposure compounds quarter over quarter.",
+  ctaTitle: "Reduce your exposure.", ctaSub: "The highest-priority items: trigger audit for execution-order governance, marketing platform consolidation for data integrity, and Sales Cloud license capacity planning. Quantified, scoped, and time-bound.", ctaBtn: "Review the Remediation Plan &#8594;",
+  f: {
+    "dealtype-title": "Revenue Classification: Low Risk",
+    "dealtype-desc": "Deal_Type__c with DSE Type values exists and is operational. Revenue can be classified by deal motion. Low governance risk. Recommendation: add validation rule to enforce at creation.",
+    "mrr-title": "Subscription Metrics: System-Derived, Low Risk",
+    "mrr-desc": "ARR/MRR/NRR auto-calculated via flow, not manual entry. This eliminates the primary risk vector (human error in subscription economics). Audit trail exists through flow execution history.",
+    "fields-title": "Field Proliferation: Governance Gap",
+    "fields-desc": "1,021 fields without a documented ownership model. No field governance policy. Managed packages contribute ~60% but org-created duplicates indicate no naming convention enforcement. Data governance risk.",
+    "stages-title": "Pipeline Valuation: Accuracy Risk",
+    "stages-desc": "Duplicate proposal stages and no validation rules mean pipeline value is ambiguous. Weighted pipeline calculations are unreliable. Affects cash flow planning, hiring decisions, and board reporting accuracy.",
+    "hierarchy-title": "Account Consolidation: Reporting Risk",
+    "hierarchy-desc": "1% hierarchy population means revenue concentration analysis, credit risk assessment, and client dependency reporting are not possible. For a consulting firm with enterprise clients, this is a governance gap.",
+    "contact-title": "Contact Data: Low Risk",
+    "contact-desc": "Comprehensive tracking with lifecycle stages, attribution, and performance rollups. Well-governed with consistent field naming and high population rates. No remediation required.",
+    "routing-title": "Lead Assignment: SLA Exposure",
+    "routing-desc": "No formal Assignment Rule active. Routing depends on fragmented flow logic with no SLA tracking or alerting. If a lead falls through the cracks, there is no detection mechanism.",
+    "stage-auto-title": "Pipeline Telemetry: Well-Governed",
+    "stage-auto-desc": "ScaleMatters provides systematic stage tracking with timestamps, values, and alerts. Audit trail exists. This is a well-governed automation. The risk is that nobody reviews the data it captures.",
+    "forecast-title": "Forecast Accuracy: Partial Governance",
+    "forecast-desc": "Custom forecasting exists but isn't connected to native Collaborative Forecasting. Board-reported forecasts may not match system-derived values. Reconciliation risk in financial communications.",
+    "conflict-title": "113 Triggers: Critical Governance Risk",
+    "conflict-desc": "11+ managed packages with triggers on the same objects plus org-created triggers and 75 record-triggered flows. Execution order is non-deterministic. A single metadata change could cause cascading failures. Highest-priority risk item.",
+    "redundancy-title": "Dual Marketing Platforms: Data Integrity Risk",
+    "redundancy-desc": "HubSpot and Pardot both active creates: duplicate scoring, conflicting engagement data, split prospect communication. No single source of truth for marketing engagement. Additionally, unnecessary licensing cost exposure.",
+    "product-title": "Client Engagement: Appropriate for Model",
+    "product-desc": "Project tracking, CSAT, and interaction logging provide client health governance appropriate for a consulting firm. Avoma integration adds call intelligence. No product telemetry needed.",
+    "dash-mgr-title": "Dashboard Sprawl: Information Governance Gap",
+    "dash-mgr-desc": "69 dashboards with 3 versions of Pipeline Review. No governance on creation, naming, or retirement. Users cannot identify authoritative data sources. Information governance risk.",
+    "dash-exec-title": "Executive Reporting: Manual Calculation Risk",
+    "dash-exec-desc": "Unit economics (CAC, LTV, NRR trending) require manual calculation outside Salesforce. Manual processes introduce error risk in board-level financial communications.",
+    "dash-pipe-title": "Pipeline Generation: Low Risk",
+    "dash-pipe-desc": "Attribution-based pipeline generation dashboard is operational. Data integrity is maintained through system-derived attribution fields. Low governance risk.",
+    "dash-health-title": "Pipeline Health: Visibility Governance Gap",
+    "dash-health-desc": "Deal health data is captured but has no visibility layer. At-risk revenue is not surfaced to managers. This is a risk management gap -- the detection capability exists but the alerting mechanism does not.",
+    "dash-mktg-title": "Marketing Spend: No Attribution Controls",
+    "dash-mktg-desc": "Marketing spend is not connected to revenue outcomes. Budget allocation decisions lack data-driven governance. Attribution infrastructure exists but the closed-loop measurement does not."
+  }
+},
+
+// 5. THE BUILDER
+builder: {
+  fonts: ['DM Sans','JetBrains Mono'],
+  badge: "Technical Architecture Review",
+  heroTitle: 'Good bones. Needs a<br><span class="hl">governance layer</span><br>and some dashboards.',
+  heroSub: "697 metadata objects scanned. The data model is solid -- Deal_Type__c, ARR/MRR/NRR auto-calc, comprehensive Contact model. The build priorities: consolidate 113 triggers + 217 flows, choose HubSpot or Pardot, build the pipeline health dashboard (4 hours, zero new fields).",
+  scoreLabel: "Architecture Score", metaCritLabel: "Build Priorities",
+  overviewDesc: "This review maps SaaScend's current metadata against RevOps best practices. Unlike most audits, the core infrastructure is already built. The priorities are consolidation, governance, and activation -- not greenfield construction.",
+  dataDesc: "The data model is above average. Deal segmentation, subscription economics, and lifecycle tracking all exist. The build priorities are: field audit and cleanup (8-12 hours), stage consolidation (4-6 hours), and hierarchy population (4-6 hours).",
+  autoDesc: "ScaleMatters provides stage telemetry, custom flows handle grading and forecast mapping. The architecture concern is 113 triggers and 217 flows without a governance framework. The build priority is a trigger audit and flow consolidation.",
+  intDesc: "9 integrations connected. The architecture question is HubSpot vs Pardot. For a Salesforce consulting firm, Pardot/MCAE is the natural choice. Decommission HubSpot, migrate active campaigns, save on licensing.",
+  reportDesc: "The reporting architecture needs curation, not construction. 69 dashboards should be reduced to 15-20 authoritative ones. The highest-ROI build: pipeline health dashboard using existing Deal_Alerts__c, Stalled_Deal__c, Days_Since_Last_Activity__c. Build effort: 4 hours.",
+  kpiDesc: "6 of 11 KPIs are already measurable from Salesforce metadata. The remaining builds: CAC formula (needs marketing spend field, 2 hours), LTV calculation (needs churn rate formula, 2 hours), Pipeline Velocity formula (3 hours using scaleMatters dates).",
+  cloudDesc: "Architecture opportunities: activate 598 unused Einstein licenses for AI-powered deal scoring using existing scaleMatters data, activate existing Tableau CRM licenses for advanced analytics, plan Sales Cloud license expansion before hitting capacity.",
+  roiHeadline: "Build vs. Buy Analysis", roiSub: "The left column shows SaaScend Tier 5 pricing. The right shows the operational cost of the current state over 12 months. Most items on the left are 4-12 hour builds.",
+  ctaTitle: "Let's build this together.", ctaSub: "The architecture is solid. The priorities are clear: trigger governance, marketing platform consolidation, pipeline health dashboard, Einstein activation. Most items are 4-12 hour builds with massive operational return.", ctaBtn: "Start the Architecture Review &#8594;",
+  f: {
+    "dealtype-title": "Deal_Type__c: Present, Needs Standardisation",
+    "dealtype-desc": "Picklist exists with DSE Type values. Recommendation: standardise to New Business, Expansion, Renewal, Cross-Sell. Add validation rule to enforce at creation. Build effort: 1 hour.",
+    "mrr-title": "ARR/MRR/NRR: Auto-Calculated via Flow",
+    "mrr-desc": "Total_MRR__c, Total_ARR__c, Total_NRR__c roll-up summaries. Opp Products - Update ARR/MRR/NRR flow handles calculation. No build needed. This is how it should be done.",
+    "fields-title": "1,021 Fields: Audit and Cleanup Sprint",
+    "fields-desc": "Run field utilisation report. Identify zero-population org-created fields. Hide from layouts immediately. Schedule deletion after 90-day notice. Document managed package field ownership. Build effort: 8-12 hours.",
+    "stages-title": "Consolidate Duplicate Stages, Add Validation",
+    "stages-desc": "Merge 'Proposal' and 'Proposal/Price Quote' into one stage. Add validation rules enforcing required fields at each gate. Enable Path component. Build effort: 4-6 hours including testing.",
+    "hierarchy-title": "Account.ParentId: Bulk Populate",
+    "hierarchy-desc": "Field exists (standard). Use ZoomInfo or Clearbit data (already integrated) to bulk-populate corporate hierarchies. Start with top 100 client accounts. Build effort: 4-6 hours for data load + process.",
+    "contact-title": "Contact Model: No Build Needed",
+    "contact-desc": "Lifecycle_Stage__c, attribution, activity rollups, performance metrics. Record Types: Client, Partner, Prospect. Whoever built this followed best practices. No work required.",
+    "routing-title": "Consolidate Routing into Single Orchestration Flow",
+    "routing-desc": "Components: Round_Robin formulas, LEAD - Root Domain matching, LEAD - GRADING. Consolidate into a single after-create orchestration flow with SLA timestamp. Build effort: 6-8 hours.",
+    "stage-auto-title": "Stage Tracking: No Build Needed",
+    "stage-auto-desc": "ScaleMatters handles S1-S10 dates, prior stage, stage values. Opportunity_Snapshot__c captures close state. Deal_Alerts__c and Stalled_Deal__c formulas in place. Solid architecture.",
+    "forecast-title": "Connect Custom Forecasting to Native Features",
+    "forecast-desc": "Enable Collaborative Forecasting. Map Revenue_Forecast__c to ForecastCategory via existing flow. Connect Target__c to native Quota object. Build effort: 8-10 hours.",
+    "conflict-title": "Full Trigger Audit + Flow Consolidation",
+    "conflict-desc": "Document all 113 triggers by object and execution order. Map managed package triggers (scaleMatters, Groove, Plauti, Clearbit, ZoomInfo, Pardot, Prolifiq, Rollup Helper, Maps, PandaDoc, Slack). Consolidate org-created logic. Migrate 14 Process Builders. Build effort: 20-30 hours.",
+    "redundancy-title": "Decommission HubSpot, Consolidate to Pardot",
+    "redundancy-desc": "For a Salesforce consulting firm, Pardot is the natural choice. Migration steps: audit active HubSpot campaigns, recreate in Pardot, migrate lead scores, update UTM tracking, decommission HubSpot connected app. Effort: 12-16 hours.",
+    "product-title": "Client Health Scoring: Enhancement Opportunity",
+    "product-desc": "Client_Health__c, CSAT__c, Interaction__c, Website_Touches__c exist. Enhancement: build a weighted Client Health Score formula combining CSAT, interaction recency, and project status. Build effort: 3-4 hours.",
+    "dash-mgr-title": "Dashboard Curation Sprint: 69 to 20",
+    "dash-mgr-desc": "Audit all 69 dashboards. Identify the 15-20 with actual value. Archive the rest. Fix the Pipeline Review situation (pick one, delete duplicates). Build effort: 4-6 hours for curation.",
+    "dash-exec-title": "Executive Dashboard: Build on Existing ARR Fields",
+    "dash-exec-desc": "ARR/MRR/NRR fields exist. Add: ARR waterfall report type, NRR trending, deal type segmentation. Connect to Goals to Actuals. Build effort: 6-8 hours. Blocked by: nothing. Start immediately.",
+    "dash-pipe-title": "Pipeline Generation: Already Built",
+    "dash-pipe-desc": "Attribution-based dashboard exists in Jumpstart Demo Dashboards folder. First/Last Touch Campaign and UTM tracking operational. No build needed. Consider moving to a production folder.",
+    "dash-health-title": "Pipeline Health Dashboard: Zero-Dependency Build",
+    "dash-health-desc": "All required fields exist: Deal_Alerts__c, Stalled_Deal__c, Days_Since_Last_Activity__c, scaleMatters S1-S10, Opportunity_Snapshot__c, Days_Inactive__c, Client_Sentiment__c. Build effort: 4-6 hours. Highest ROI item in this audit.",
+    "dash-mktg-title": "Marketing ROI: Close the Loop",
+    "dash-mktg-desc": "Campaign ROI formula, CPL, CPO fields exist. Add: Marketing_Spend__c field on Campaign, closed-loop attribution report connecting campaigns to closed revenue. Build effort: 4-6 hours."
+  }
+},
+
+// 6. THE ROAST (DEFAULT)
+roast: {
+  fonts: ['Sora','JetBrains Mono'],
+  badge: "Brutally Honest Org Roast",
+  heroTitle: 'The cobbler\'s children<br>have <span class="hl">no shoes</span>.',
+  heroSub: "You're a Salesforce consulting firm. You build this stuff for clients. We scanned your own org and -- look, it's not terrible. The bones are good. But 113 triggers, two marketing platforms, 69 dashboards nobody opens, and a pipeline health engine with no dashboard? Come on.",
+  scoreLabel: "Cobbler Score", metaCritLabel: "Self-Inflicted Wounds",
+  overviewDesc: "This is SaaScend auditing SaaScend. The irony is not lost on anyone. 697 metadata objects scanned. The good news: your data model is genuinely solid. The bad news: everything built on top of it is a governance nightmare. Let's walk through the wreckage.",
+  dataDesc: "Credit where it's due: Deal_Type__c exists, ARR/MRR/NRR auto-calculate, and the Contact model is best-in-class. Now the roast: 1,021 custom fields. One thousand and twenty-one. You've got three versions of Pipeline Review and two proposal stages. The foundations are strong but the house is cluttered.",
+  autoDesc: "Oh, scaleMatters is tracking stage telemetry. Deal alerts exist. Stalled deal detection exists. That's actually great. Now explain why you have 113 triggers, 217 flows, 14 Process Builders that should have been migrated two years ago, and a lead routing system that's spread across four separate automations that don't talk to each other.",
+  intDesc: "You're a Salesforce consulting firm running HubSpot AND Pardot. Both. At the same time. I'm going to let that sink in. Your leads have both pi__ fields and HubSpot scoring fields. Your UTM tracking is duplicated across both platforms. You tell clients to consolidate their tech stack.",
+  reportDesc: "69 dashboards. Two were accessed this week. TWO. Pipeline Review exists in three versions because nobody cleaned up after themselves. But here's the real kicker: Deal_Alerts__c, Stalled_Deal__c, Days_Since_Last_Activity__c -- all that pipeline health data -- captured by scaleMatters, sitting in your org, with NO DASHBOARD. You built the engine and forgot the dashboard.",
+  kpiDesc: "Alright, this is actually impressive. 6 of 11 KPIs measurable natively. ARR, MRR, NRR, sales cycle, win rate, lead conversion -- all trackable. That puts you ahead of 80% of the companies you audit. But you can't measure quota attainment because you built a Target object and then never connected it to anything.",
+  cloudDesc: "9 active clouds for 5 sales reps. Sales Cloud is maxed at 30/30 -- literally cannot add another user. Einstein has 602 licenses and you're using 4. FOUR. You have AI-powered deal scoring capability sitting right there and you're using 0.7% of it. Tableau CRM licenses exist and are completely unused. But sure, build more dashboards nobody will look at.",
+  roiHeadline: "How Much This Is Actually Costing You", roiSub: "Move the sliders. Watch the numbers. Then explain to me why a Salesforce consulting firm hasn't fixed its own org. I'll wait.",
+  ctaTitle: "Fix your own org. Seriously.", ctaSub: "You tell your clients to do this. You charge them for it. You know exactly what the build looks like. Stop being the cobbler whose children have no shoes.", ctaBtn: "Alright, Let's Fix This &#8594;",
+  f: {
+    "dealtype-title": "Oh Look, Deal Type Actually Exists",
+    "dealtype-desc": "Deal_Type__c with DSE Type values. I was ready to roast you for this but you actually have it. Rare. Tighten the picklist values and add a validation rule at creation. A Salesforce consulting firm shouldn't need to be told this.",
+    "mrr-title": "ARR/MRR/NRR Auto-Calculated. Nice.",
+    "mrr-desc": "Total_MRR__c, Total_ARR__c, Total_NRR__c roll-up summaries with an auto-calculation flow. This is what you tell your clients to build. At least you practice what you preach on this one.",
+    "fields-title": "One Thousand and Twenty-One Custom Fields",
+    "fields-desc": "Lead: 237. Account: 209. Contact: 258. Opportunity: 317. Yes, managed packages account for 60%. But that still leaves four hundred org-created fields. Multiple funding round fields. Multiple UTM fields. The naming convention is 'whatever felt right at the time.'",
+    "stages-title": "Two Proposal Stages. In Your Own Org.",
+    "stages-desc": "'Proposal' and 'Proposal/Price Quote' both exist because someone created a new stage instead of cleaning up the old one. No validation rules. You literally build stage exit criteria for clients. LITERALLY.",
+    "hierarchy-title": "134 of 12,600 Accounts Have a Parent. One Percent.",
+    "hierarchy-desc": "You manage enterprise client relationships across multiple entities and you can't roll up revenue by client group because 99% of accounts have no hierarchy. The ParentId field is RIGHT THERE. It's standard. It costs nothing. It's been empty since the org was created.",
+    "contact-title": "Okay, Someone Here Clearly Gave a Damn",
+    "contact-desc": "Lifecycle tracking, attribution, activity rollups, deal performance metrics -- all on Contact. 309 fields, well-organized, high population. Whoever built this contact model knew what they were doing. If only the rest of the org got this treatment.",
+    "routing-title": "Lead Routing: The Pieces Exist, The Orchestra Doesn't",
+    "routing-desc": "Round-robin formulas. Lead grading flow. Account matching flow. Assignment fields. You have all the ingredients for a routing engine and somehow they're not connected. It's like having flour, eggs, sugar, and butter and serving each one separately.",
+    "stage-auto-title": "ScaleMatters Is Doing the Heavy Lifting",
+    "stage-auto-desc": "S1-S10 timestamps, prior stage, stage values, deal alerts, stall detection, opportunity snapshots. This is genuinely solid pipeline telemetry. The problem is nobody built a dashboard to look at any of it. We'll get to that.",
+    "forecast-title": "Forecasting: 80% Built, 0% Functional",
+    "forecast-desc": "Revenue_Forecast__c maps to Forecast Category. Target__c object exists. Goals to Actuals dashboard exists. But Collaborative Forecasting isn't enabled. You built 80% of a forecasting engine and then just... stopped. The last 20% is where the value is.",
+    "conflict-title": "113 Triggers. Two Hundred and Seventeen Flows. FOURTEEN Process Builders.",
+    "conflict-desc": "ScaleMatters, Groove, Plauti, Clearbit, ZoomInfo, Pardot, Prolifiq, Rollup Helper, Maps, PandaDoc, Slack -- all with triggers on the same objects. Plus org-created triggers and 75 record-triggered flows. Execution order? Non-deterministic. Data integrity? Hope for the best. You're a consulting firm. You know what a trigger framework is. USE ONE.",
+    "redundancy-title": "A Salesforce Consulting Firm Running HubSpot AND Pardot",
+    "redundancy-desc": "I cannot stress enough how funny this is. HubSpot connected app from 2021. Pardot with full API access. Leads scored in both systems. UTMs tracked in both. You tell your clients to consolidate their marketing stack. YOUR marketing stack is two competing platforms. Pick one. I recommend the one made by your largest partner.",
+    "product-title": "No Product Telemetry (Because You're Not a Product Company)",
+    "product-desc": "You're a consulting firm. You don't have a SaaS product. Project__c, CSAT__c, and Avoma are how you track client health. This is correct. I have nothing to roast here. Moving on.",
+    "dash-mgr-title": "69 Dashboards. Two Used This Week. TWO.",
+    "dash-mgr-desc": "Pipeline Review v1, Pipeline Review (duplicate), Pipeline Review v2. Three versions. Someone copied a dashboard, made changes, and never deleted the original. Multiply that pattern by 20 folders. 69 dashboards. 3% utilisation. This is not a reporting strategy. This is a junk drawer.",
+    "dash-exec-title": "Your Board Gets Pipeline Without the Story",
+    "dash-exec-desc": "Goals to Actuals exists. Master Pipeline Dashboard was accessed recently. But no ARR waterfall by deal type, no CAC, no LTV, no NRR trending. You have ARR and MRR fields that auto-calculate and you still can't show the board unit economics. The fields EXIST. Build the dashboard.",
+    "dash-pipe-title": "Pipeline Generation Dashboard: Actually Works",
+    "dash-pipe-desc": "Attribution-based pipeline generation with First/Last Touch and UTM tracking. In the Jumpstart Demo Dashboards folder, which means it was probably built for a client demo and repurposed. Whatever. It works. I'll take it.",
+    "dash-health-title": "Built the Engine. Forgot the Dashboard. Classic.",
+    "dash-health-desc": "Deal_Alerts__c. Stalled_Deal__c. Days_Since_Last_Activity__c. scaleMatters S1 through S10 timestamps. Opportunity_Snapshot__c. Days_Inactive__c. Client_Sentiment__c. ALL OF THIS DATA EXISTS IN YOUR ORG RIGHT NOW. And there is ZERO dashboard surfacing ANY of it. Four to six hours of build time. No new fields needed. This is the most inexcusable finding in the entire audit.",
+    "dash-mktg-title": "Marketing Dashboards Without Revenue Attribution",
+    "dash-mktg-desc": "Marketing Dashboard, ICP dashboard, Target Account Activation. Campaign ROI formula, CPL, CPO. All there. But no closed-loop dashboard connecting marketing spend to closed revenue. You know, the one metric that justifies the marketing budget. That one's missing."
+  }
+}
+};
+
+// APPLY PERSONA
+var currentPersona = 'roast';
+function setPersona(key) {
+  currentPersona = key;
+  var p = P[key]; if (!p) return;
+
+  document.querySelectorAll('.persona-btn').forEach(function(b){b.classList.toggle('active', b.dataset.persona === key)});
+
+  // Fonts
+  var body = p.fonts[0], display = p.fonts[1];
+  document.body.style.fontFamily = "'" + body + "', sans-serif";
+  document.querySelectorAll('.hero-title, .section-title, .cta-title').forEach(function(el){el.style.fontFamily = "'" + display + "', serif"});
+
+  // IDs
+  var ids = ['heroBadge','heroSub','scoreLabel','metaCritLabel','overviewDesc','dataDesc','autoDesc','intDesc','reportDesc','kpiDesc','cloudDesc','roiHeadline','roiSub','ctaTitle','ctaSub'];
+  ids.forEach(function(id){var el = document.getElementById(id); if (el && p[id] !== undefined) el.textContent = p[id];});
+
+  // Hero title (innerHTML because it has <br> and <span>)
+  document.getElementById('heroTitle').innerHTML = p.heroTitle;
+
+  // CTA button
+  document.getElementById('ctaBtn').innerHTML = p.ctaBtn + ' <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>';
+
+  // data-finding attributes
+  if (p.f) {
+    Object.keys(p.f).forEach(function(k){
+      var el = document.querySelector('[data-finding="' + k + '"]');
+      if (el) el.textContent = p.f[k];
+    });
+  }
+
+  // Re-run ROI calc to update dynamic hero amount
+  calcROI();
+}
+setPersona('roast');
+
+</script>
+</body>
+</html>
