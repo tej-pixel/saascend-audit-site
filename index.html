@@ -3,6 +3,35 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script>
+(function(){
+  const HASH='a]3!kX';const P='JJOWWxyR';
+  if(sessionStorage.getItem(HASH)===P)return;
+  document.addEventListener('DOMContentLoaded',function(){
+    document.body.style.overflow='hidden';
+    var o=document.createElement('div');
+    o.id='pw-gate';
+    o.innerHTML='<div style="position:fixed;inset:0;z-index:99999;background:#0B0E11;display:flex;align-items:center;justify-content:center;flex-direction:column;font-family:DM Sans,sans-serif">'
+      +'<div style="text-align:center;max-width:400px;padding:40px">'
+      +'<div style="font-size:13px;text-transform:uppercase;letter-spacing:2px;color:#00D4AA;margin-bottom:24px;font-weight:600">SaaScend Org Audit</div>'
+      +'<h1 style="color:#E8ECF1;font-size:28px;margin-bottom:8px;font-weight:700">This report is protected</h1>'
+      +'<p style="color:#8899AA;font-size:15px;margin-bottom:32px">Enter the password provided by your SaaScend contact to view the audit.</p>'
+      +'<input id="pw-input" type="password" placeholder="Enter password" style="width:100%;padding:14px 20px;background:#12161C;border:1px solid #2A3140;border-radius:100px;color:#E8ECF1;font-size:15px;font-family:DM Sans,sans-serif;outline:none;margin-bottom:16px;text-align:center">'
+      +'<button id="pw-btn" style="width:100%;padding:14px;background:#00D4AA;color:#0B0E11;font-size:14px;font-weight:700;border:none;border-radius:100px;cursor:pointer;font-family:DM Sans,sans-serif;transition:all .2s">Unlock Report</button>'
+      +'<p id="pw-err" style="color:#FF5C5C;font-size:13px;margin-top:12px;display:none">Incorrect password. Please try again.</p>'
+      +'</div></div>';
+    document.body.prepend(o);
+    var inp=document.getElementById('pw-input'),btn=document.getElementById('pw-btn'),err=document.getElementById('pw-err');
+    function tryUnlock(){
+      if(inp.value===P){sessionStorage.setItem(HASH,P);o.remove();document.body.style.overflow='';}
+      else{err.style.display='block';inp.style.borderColor='#FF5C5C';inp.value='';setTimeout(function(){inp.style.borderColor='#2A3140';},1500);}
+    }
+    btn.onclick=tryUnlock;
+    inp.onkeydown=function(e){if(e.key==='Enter')tryUnlock();};
+    inp.focus();
+  });
+})();
+</script>
 <title>Salesforce Org Audit — SaaScend | SaaScend</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,700&family=Space+Mono:wght@400;700&family=Playfair+Display:wght@700;900&family=JetBrains+Mono:wght@400;700&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Sora:wght@300;400;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
